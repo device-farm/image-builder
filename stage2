@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# https://linux-sunxi.org/Bootable_SD_card#Bootloader
+
+set -e
+
+echo "[step] Creating file systems..."
+mkfs.vfat -n BOOT part-boot
+#mkfs.ext4 -F -L SYSTEM part-system
+#mkfs.ext4 -F -L DATA part-data
+
+mount part-boot mount-boot -t vfat
+cp boot.scr mount-boot
+umount mount-boot
+
+sync
