@@ -5,4 +5,4 @@ docker build . -t df-builder
 SDCARD=/dev/mmcblk0
 
 docker run --rm -it --device=$SDCARD:/build/sdcard:rwm --cap-add SYS_ADMIN df-builder /build/stage1
-docker run --rm -it --device=${SDCARD}p1:/build/part-boot:rwm --device=${SDCARD}p2:/build/part-system:rwm --device=${SDCARD}p3:/build/part-data:rwm --cap-add SYS_ADMIN --security-opt apparmor=unconfined df-builder /build/stage2
+docker run --rm -it --device=${SDCARD}p1:/build/part-root:rwm --device=${SDCARD}p2:/build/part-data:rwm --cap-add SYS_ADMIN --security-opt apparmor=unconfined df-builder /build/stage2

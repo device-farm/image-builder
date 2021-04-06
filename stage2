@@ -5,12 +5,22 @@
 set -e
 
 echo "[step] Creating file systems..."
-mkfs.vfat -n BOOT part-boot
-#mkfs.ext4 -F -L SYSTEM part-system
+mkfs.ext4 -F -L ROOT part-root
 #mkfs.ext4 -F -L DATA part-data
 
-mount part-boot mount-boot -t vfat
-cp boot.scr mount-boot
-umount mount-boot
+mount part-root mount-root
+
+mkdir mount-root/boot
+cp boot.scr mount-root/boot
+cp linux/arch/arm/boot/dts/sun8i-h2-plus-orangepi-zero.dtb mount-root/boot
+cp linux/arch/arm/boot/zImage mount-root/boot
+
+cp -r alpine/* mount-root
+#cp -r copy-root/* mount-root
+
+#bash
+
+umount mount-root
 
 sync
+echo "[step] Done."
