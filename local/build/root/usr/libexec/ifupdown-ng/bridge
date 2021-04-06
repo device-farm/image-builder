@@ -1,9 +1,0 @@
-#!/bin/sh
-set -e
-case "$PHASE" in
-depend)
-	if [ "$IF_BRIDGE_PORTS" != "none" ]; then
-		echo "$IF_BRIDGE_PORTS"
-	fi
-	;;
-esac
