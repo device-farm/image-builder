@@ -1,8 +1,11 @@
 #!/bin/bash
 
-docker build . -t df-builder
-
 SDCARD=/dev/mmcblk0
+DOCKER_IMAGE=burgrp/df-builder
 
-docker run --rm -it --device=$SDCARD:/build/sdcard:rwm --cap-add SYS_ADMIN df-builder /build/stage1
-docker run --rm -it --device=${SDCARD}p1:/build/part-root:rwm --device=${SDCARD}p2:/build/part-data:rwm --cap-add SYS_ADMIN --security-opt apparmor=unconfined df-builder /build/stage2
+docker buildx build --progress=plain . --push -t $DOCKER_IMAGE
+docker pull $DOCKER_IMAGE
+
+docker run --rm -it --device=$SDCARD:/build/sdcard:rwm --cap-add SYS_ADMIN $DOCKER_IMAGE /build/step1
+docker run --rm -it --device=${SDCARD}p1:/build/part-root:rwm --device=${SDCARD}p2:/build/part-data:rwm --cap-add SYS_ADMIN --security-opt apparmor=unconfined $DOCKER_IMAGE /build/step2
+

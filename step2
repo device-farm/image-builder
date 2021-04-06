@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# https://linux-sunxi.org/Bootable_SD_card#Bootloader
+
+set -e
+
+echo "> Creating file systems..."
+mkfs.ext4 -F -L ROOT part-root
+#mkfs.ext4 -F -L DATA part-data
+
+echo "> Copying root file system..."
+
+mkdir mount-root
+mount part-root mount-root
+sh
+cp -r root/* mount-root
+
+umount mount-root
+
+sync
+echo "> Done."

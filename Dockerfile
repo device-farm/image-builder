@@ -1,4 +1,4 @@
-FROM ubuntu
+FROM ubuntu AS cross
 
 ######################################################
 
@@ -15,8 +15,10 @@ RUN apt-get install -y \
     bc \
     util-linux \
     dosfstools \
-    u-boot-tools
+    u-boot-tools \
+    curl
 
+ENV ARCH=arm 
 ENV CROSS_COMPILE=arm-linux-gnueabihf-
 
 ######################################################
@@ -36,34 +38,29 @@ RUN git clone https://github.com/torvalds/linux.git
 
 WORKDIR /build/linux
 
-ENV ARCH=arm 
 RUN make sunxi_defconfig
 RUN make 
 
 ######################################################
 
 WORKDIR /build
-#RUN git clone https://git.busybox.net/busybox/
-
-#WORKDIR /build/busybox
-
-#RUN make defconfig
-#RUN make install
-
-RUN apt-get install -y curl
-WORKDIR /build/alpine
-RUN curl https://dl-cdn.alpinelinux.org/alpine/v3.13/releases/armv7/alpine-minirootfs-3.13.4-armv7.tar.gz | tar -xvz
-
-
-######################################################
-
-WORKDIR /build
-
-RUN mkdir mount-root
-
-COPY copy-root ./copy-root
-COPY stage1 stage2 boot.cmd ./
+COPY boot.cmd ./
 RUN mkimage -C none -A arm -T script -d boot.cmd boot.scr
 
 ######################################################
 
+FROM --platform=linux/arm/v7 alpine AS root
+RUN apk add openrc mc tree
+
+######################################################
+
+FROM alpine
+
+RUN apk add sfdisk e2fsprogs
+
+WORKDIR /build
+
+COPY --from=root / root/
+COPY --from=cross /build/linux/arch/arm/boot/dts/sun8i-h2-plus-orangepi-zero.dtb /build/linux/arch/arm/boot/zImage /build/boot.scr root/boot/
+COPY --from=cross /build/u-boot/u-boot-sunxi-with-spl.bin ./ 
+COPY step1 step2 ./ 
