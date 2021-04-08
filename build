@@ -7,6 +7,23 @@ DOCKER_IMAGE=df-orangepi-zero
 
 docker buildx build --progress=plain . --load -t $DOCKER_IMAGE
 
-docker run --rm -it --device=$SDCARD:/build/sdcard:rwm --cap-add SYS_ADMIN $DOCKER_IMAGE /build/step1
-docker run --rm -it --device=${SDCARD}p1:/build/part-root:rwm --device=${SDCARD}p2:/build/part-data:rwm --cap-add SYS_ADMIN --security-opt apparmor=unconfined $DOCKER_IMAGE /build/step2
+docker run \
+    --rm \
+    -it \
+    --device=$SDCARD:/build/sdcard:rwm \
+    --cap-add SYS_ADMIN \
+    $DOCKER_IMAGE \
+    /build/step1
+
+
+docker run \
+    --rm \
+    -it \
+    -v $(pwd)/customize-root:/build/customize-root \
+    --device=${SDCARD}p1:/build/part-root:rwm \
+    --device=${SDCARD}p2:/build/part-data:rwm \
+    --cap-add SYS_ADMIN \
+    --security-opt apparmor=unconfined \
+    $DOCKER_IMAGE \
+    /build/step2
 

@@ -12,26 +12,9 @@ echo "> Copying root file system..."
 
 mkdir mount-root
 mount part-root mount-root
-
 cp -r copy-root/* mount-root
-
-cat >mount-root/etc/network/interfaces <<EOT
-auto eth0
-iface eth0 inet static
-address 10.1.0.40
-netmask 255.255.255.0
-gateway 10.1.0.2
-EOT
-
-cat >mount-root/etc/resolv.conf <<EOT
-nameserver 8.8.8.8
-EOT
-
-mkdir mount-root/root/.ssh
-cat >mount-root/root/.ssh/authorized_keys <<EOT
-ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAwwfTgR1rTMq3R4xnl4gtbU+S23zaXb8W3vbF2vJKqJ6B2KK7c5Jrv554zMWwih0mcjTDWjzMuIskrnL9BcBPE9JS7yQSaYLuSqBiaQYe9YFShjxti4u+N4Osv2O/065kWeb35V2JcuD1f+YK6agjkksK2yXsugkcXfWilic3hliPCzqr4i2THkuzvmITu4iBjxDeIqv+wrh2Yv4YHqTxDYnocQPIzMfzJuA+KyRnBB/p5G8X9vDZCDqvVRDruifdmw+g8TQJma5pk0wh1BPM+FxTEbAIBpYI4QOa9gBeO8SY3T8FgUeRlNLVBq8hQMD0ALFOFHU9sBSoZz0ivaZwYQ== /home/paul/.ssh/id_rsa
-EOT
-
+echo "nameserver 8.8.8.8" >mount-root/etc/resolv.conf
+cp -r customize-root/* mount-root
 umount mount-root
 
 sync
