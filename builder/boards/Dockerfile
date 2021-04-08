@@ -49,3 +49,9 @@ WORKDIR /build/linux
 
 RUN make ${LINUX_DEFCONFIG}
 RUN make 
+
+######################################################
+
+WORKDIR /build
+COPY boot.cmd ./
+RUN mkimage -C none -A ${ARCH} -T script -d boot.cmd boot.scr
