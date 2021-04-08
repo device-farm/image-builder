@@ -1,0 +1,32 @@
+#!/bin/bash
+set -e
+
+cd $1
+
+addVar() {
+    KEY=$1
+    VALUE=$2
+    echo "$KEY=\"$VALUE\""
+    eval "$KEY=\"$VALUE\""
+    DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg \"$KEY=$VALUE\""
+}
+
+addVar BOARD_ID $(basename $1)
+
+for NAME in $(ls _*)
+do    
+    KEY=$(echo $NAME | sed s/^.//)
+    VALUE=$(cat _$KEY)
+    addVar "$KEY" "$VALUE"
+done
+
+echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
+
+DOCKER_IMAGE=defa/$BOARD_ID
+DOCKER_CTX=/tmp/ctx-$BOARD_ID
+rm -rf $DOCKER_CTX
+cp -rL . $DOCKER_CTX
+
+sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+
+echo "Published as $DOCKER_IMAGE"

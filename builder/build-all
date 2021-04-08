@@ -1,0 +1,11 @@
+#!/bin/bash
+set -e
+
+BOARDS_DIR=$(dirname $0)/boards
+
+for BNF in $(find $BOARDS_DIR -type f -name _BOARD_NAME)
+do
+    BOARD_DIR=$(dirname $BNF)
+    $(dirname $0)/build $BOARD_DIR
+done
+
