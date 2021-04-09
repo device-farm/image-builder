@@ -48,7 +48,7 @@ RUN git clone -c advice.detachedHead=false --depth 1 -b ${LINUX_VERSION} ${LINUX
 WORKDIR /build/linux
 
 RUN make ${LINUX_DEFCONFIG}
-RUN make 
+RUN make
 
 ######################################################
 
