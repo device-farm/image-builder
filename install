@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+
+TARGET=/dev/mmcblk0
+DOCKER_IMAGE=defa/orangepi-zero
+
+docker run \
+    --rm \
+    -it \
+    --device=$TARGET:/build/target:rwm \
+    --cap-add SYS_ADMIN \
+    $DOCKER_IMAGE \
+    /build/install-step1
+
+
+docker run \
+    --rm \
+    -it \
+    -v $(pwd)/customize-root:/build/customize-root \
+    --device=${TARGET}p1:/build/part-root:rwm \
+    --device=${TARGET}p2:/build/part-data:rwm \
+    --cap-add SYS_ADMIN \
+    --security-opt apparmor=unconfined \
+    $DOCKER_IMAGE \
+    /build/install-step2
+

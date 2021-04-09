@@ -1,0 +1,14 @@
+#!/bin/sh
+set -e
+
+if [ -f ./install-spl ]
+then
+    ./install-spl
+fi
+
+echo "> Creating partition table..."
+sfdisk target <<EOT
+1M,300M,L
+,500M,L
+EOT
+
