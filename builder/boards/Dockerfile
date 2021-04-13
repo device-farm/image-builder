@@ -104,6 +104,7 @@ RUN \
 RUN echo 'SYSLOGD_OPTS="-t -K"' >/etc/conf.d/syslog
 
 COPY inittab /etc/inittab
+COPY cgconfig.conf /etc/cgconfig.conf
 
 ######################################################
 #   installer image                                  #
@@ -115,7 +116,6 @@ RUN apk add sfdisk e2fsprogs
 
 WORKDIR /build
 
-# TODO Move up
 ARG LINUX_DT_NAME
 
 COPY --from=root-stage / copy-root/
