@@ -2,7 +2,7 @@
 set -e
 
 TARGET=/dev/mmcblk0
-DOCKER_IMAGE=defa/orangepi-zero
+DOCKER_IMAGE=defa/install-orangepi-zero
 
 docker run \
     --rm \

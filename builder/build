@@ -22,7 +22,7 @@ done
 
 echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
 
-DOCKER_IMAGE=defa/$BOARD_ID
+DOCKER_IMAGE=defa/install-$BOARD_ID
 DOCKER_CTX=/tmp/ctx-$BOARD_ID
 rm -rf $DOCKER_CTX
 cp -rL . $DOCKER_CTX

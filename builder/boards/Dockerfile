@@ -88,29 +88,33 @@ RUN apk add \
 
 RUN \
     rc-update add devfs sysinit && \
-    rc-update add cgroups sysinit && \
     rc-update add mdev sysinit && \
     rc-update add bootmisc boot && \
     rc-update add hostname boot && \
     rc-update add hwclock boot && \
     rc-update add loopback boot && \
     rc-update add networking boot && \
+    rc-update add cgroups boot && \
     rc-update add syslog boot && \
     rc-update add mount-ro shutdown && \
     rc-update add killprocs shutdown && \
     rc-update add savecache shutdown && \
-    rc-update add dropbear default
+    rc-update add dropbear default && \
+    rc-update add docker default
+
+RUN mkdir /data
 
 RUN echo 'SYSLOGD_OPTS="-t -K"' >/etc/conf.d/syslog
+RUN echo 'DOCKER_OPTS="--host=unix:///var/run/docker.sock --host=tcp://127.0.0.7:2375 --data-root=/data/docker"' >/etc/conf.d/docker
 
 COPY inittab /etc/inittab
-COPY cgconfig.conf /etc/cgconfig.conf
+COPY fstab /etc/fstab
 
 ######################################################
 #   installer image                                  #
 ######################################################
 
-FROM alpine
+FROM alpine:latest AS installer-stage
 
 RUN apk add sfdisk e2fsprogs
 
@@ -124,6 +128,9 @@ COPY --from=kernel-stage /build/linux/arch/arm/boot/dts/${LINUX_DT_NAME}.dtb cop
 COPY --from=uboot-stage /build/boot.scr copy-root/boot/boot.scr
 COPY --from=uboot-stage /build/u-boot/*.bin u-boot/
 COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
+
+# can't be done in root stage where /etc/resolv.conf is mounted from host
+RUN echo "nameserver 8.8.8.8" >copy-root/etc/resolv.conf
 
 COPY install-* ./
 

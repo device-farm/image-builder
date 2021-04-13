@@ -6,13 +6,17 @@ mkfs.ext4 -F -L ROOT part-root
 mkfs.ext4 -F -L DATA part-data
 
 echo "> Copying root file system..."
-
 mkdir mount-root
 mount part-root mount-root
 cp -r copy-root/* mount-root
-echo "nameserver 8.8.8.8" >mount-root/etc/resolv.conf
 cp -r customize-root/* mount-root
 umount mount-root
+
+echo "> Creating docker data mount point..."
+mkdir mount-data
+mount part-data mount-data
+mkdir mount-data/docker
+umount mount-data
 
 sync
 echo "> Done."
