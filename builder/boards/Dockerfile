@@ -75,10 +75,20 @@ RUN make
 
 FROM --platform=linux/arm/v7 alpine:3.12 AS root-stage
 
-RUN apk add alpine-base dhcp dropbear wireguard-tools docker mc tree
+RUN apk add \
+    alpine-base \
+    dhcp \
+    wireguard-tools \
+    docker \
+    iptables \
+    ip6tables \
+    dropbear \
+    mc \
+    tree
 
 RUN \
     rc-update add devfs sysinit && \
+    rc-update add cgroups sysinit && \
     rc-update add mdev sysinit && \
     rc-update add bootmisc boot && \
     rc-update add hostname boot && \
