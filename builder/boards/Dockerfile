@@ -100,12 +100,14 @@ RUN \
     rc-update add killprocs shutdown && \
     rc-update add savecache shutdown && \
     rc-update add dropbear default && \
+    rc-update add ntpd default && \
     rc-update add docker default
 
 RUN mkdir /data
 
 RUN echo 'SYSLOGD_OPTS="-t -K"' >/etc/conf.d/syslog
 RUN echo 'DOCKER_OPTS="--host=unix:///var/run/docker.sock --host=tcp://127.0.0.7:2375 --data-root=/data/docker"' >/etc/conf.d/docker
+RUN echo 'servers pool.ntp.org' >/etc/ntpd.conf
 
 COPY inittab /etc/inittab
 COPY fstab /etc/fstab
