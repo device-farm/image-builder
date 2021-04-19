@@ -82,6 +82,7 @@ RUN apk add \
     docker \
     iptables \
     ip6tables \
+    wpa_supplicant \
     dropbear \
     mc \
     tree
