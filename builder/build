@@ -27,10 +27,21 @@ echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
 DOCKER_IMAGE=defa/install-$BOARD_ID
 DOCKER_CTX=/tmp/ctx-$BOARD_ID
 rm -rf $DOCKER_CTX
-mkdir -p $DOCKER_CTX/root
+mkdir -p $DOCKER_CTX/root/etc/defa
 
 for DIR in $INV_DIRS; do
-    find $DIR -maxdepth 1 -type f -execdir cp {} $DOCKER_CTX \;
+
+    for FILE in $(find $DIR -maxdepth 1 -type f)
+    do
+        if [[ $FILE =~ .*\.append$ ]]
+        then
+            DST=$DOCKER_CTX/$(basename $(sed s/.append$// <<<$FILE))
+            cat $FILE >>$DST
+        else
+            cp $FILE $DOCKER_CTX
+        fi
+    done
+
     if [ -d $DIR/[root] ]
     then
         cp -r $DIR/[root]/. $DOCKER_CTX/root
@@ -46,7 +57,7 @@ do
     addVar "$KEY" "$VALUE"
 done
 
-sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+echo sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 
 echo "Published as $DOCKER_IMAGE"
 
