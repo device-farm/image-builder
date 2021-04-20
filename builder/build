@@ -13,11 +13,13 @@ addVar() {
 
 addVar BOARD_ID $(basename $1)
 
-for NAME in $(ls _*)
-do    
-    KEY=$(echo $NAME | sed s/^.//)
-    VALUE=$(cat _$KEY)
-    addVar "$KEY" "$VALUE"
+DIRS=$1
+while true; do
+    INV_DIRS="$DIRS $INV_DIRS"
+    if [ $(basename $DIRS) = boards ]; then
+        break
+    fi
+    DIRS=$(dirname $DIRS)
 done
 
 echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
@@ -25,8 +27,27 @@ echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
 DOCKER_IMAGE=defa/install-$BOARD_ID
 DOCKER_CTX=/tmp/ctx-$BOARD_ID
 rm -rf $DOCKER_CTX
-cp -rL . $DOCKER_CTX
+mkdir -p $DOCKER_CTX/root
+
+for DIR in $INV_DIRS; do
+    find $DIR -maxdepth 1 -type f -execdir cp {} $DOCKER_CTX \;
+    if [ -d $DIR/[root] ]
+    then
+        cp -r $DIR/[root]/. $DOCKER_CTX/root
+    fi
+done
+
+tree $DOCKER_CTX
+
+for FILE in $DOCKER_CTX/_*
+do    
+    KEY=$(echo $(basename $FILE) | sed s/^.//)
+    VALUE=$(cat $DOCKER_CTX/_$KEY)
+    addVar "$KEY" "$VALUE"
+done
 
 sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 
 echo "Published as $DOCKER_IMAGE"
+
+

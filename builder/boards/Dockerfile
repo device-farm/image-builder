@@ -1,3 +1,7 @@
+# these two args need to be on top since they control FROM command
+ARG ROOT_CONTAINER_PLATFORM
+ARG ROOT_CONTAINER_IMAGE
+
 ######################################################
 #   cross compiler                                   #
 ######################################################
@@ -73,7 +77,7 @@ RUN make
 #   root file system                                 #
 ######################################################
 
-FROM --platform=linux/arm/v7 alpine:3.12 AS root-stage
+FROM --platform=${ROOT_CONTAINER_PLATFORM} ${ROOT_CONTAINER_IMAGE} AS root-stage
 
 RUN apk add \
     alpine-base \
@@ -106,12 +110,7 @@ RUN \
 
 RUN mkdir /data
 
-RUN echo 'SYSLOGD_OPTS="-t -K"' >/etc/conf.d/syslog
-RUN echo 'DOCKER_OPTS="--host=unix:///var/run/docker.sock --host=tcp://127.0.0.7:2375 --data-root=/data/docker"' >/etc/conf.d/docker
-RUN echo 'servers pool.ntp.org' >/etc/ntpd.conf
-
-COPY inittab /etc/inittab
-COPY fstab /etc/fstab
+COPY root /
 
 ######################################################
 #   installer image                                  #
@@ -136,4 +135,3 @@ COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
 RUN echo "nameserver 8.8.8.8" >copy-root/etc/resolv.conf
 
 COPY install-* ./
-
