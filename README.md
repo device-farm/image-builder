@@ -4,6 +4,6 @@
 - iptables
 - wireshark
 - avahi?
-- set hostname (customize-root)
+- set hostname (custom-root)
 - uboot disable USB
-- support for file concatenation
+- configurable root partition size or reserve

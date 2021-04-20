@@ -9,7 +9,7 @@ echo "> Copying root file system..."
 mkdir mount-root
 mount part-root mount-root
 cp -r copy-root/* mount-root
-cp -r customize-root/* mount-root
+cp -r custom-root/* mount-root
 umount mount-root
 
 echo "> Creating docker data mount point..."

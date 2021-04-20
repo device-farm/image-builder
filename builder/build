@@ -3,15 +3,16 @@ set -e
 
 cd $1
 
+echo "Building installer image in $(pwd)"
+
 addVar() {
     KEY=$1
     VALUE=$2
     echo "$KEY=\"$VALUE\""
     eval "$KEY=\"$VALUE\""
     DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg \"$KEY=$VALUE\""
+    echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/defa/build
 }
-
-addVar BOARD_ID $(basename $1)
 
 DIRS=$1
 while true; do
@@ -22,10 +23,7 @@ while true; do
     DIRS=$(dirname $DIRS)
 done
 
-echo "Building installer image for $BOARD_NAME ($BOARD_ID)"
-
-DOCKER_IMAGE=defa/install-$BOARD_ID
-DOCKER_CTX=/tmp/ctx-$BOARD_ID
+DOCKER_CTX=/tmp/build-ctx
 rm -rf $DOCKER_CTX
 mkdir -p $DOCKER_CTX/root/etc/defa
 
@@ -48,8 +46,7 @@ for DIR in $INV_DIRS; do
     fi
 done
 
-tree $DOCKER_CTX
-
+addVar BOARD_ID $(basename $1)
 for FILE in $DOCKER_CTX/_*
 do    
     KEY=$(echo $(basename $FILE) | sed s/^.//)
@@ -57,8 +54,10 @@ do
     addVar "$KEY" "$VALUE"
 done
 
-echo sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+tree $DOCKER_CTX
 
+DOCKER_IMAGE=$INSTALL_REPO/install-$BOARD_ID
+sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
 
 

@@ -16,7 +16,7 @@ docker run \
 docker run \
     --rm \
     -it \
-    -v $(pwd)/customize-root:/build/customize-root \
+    -v $(pwd)/custom-root:/build/custom-root \
     --device=${TARGET}p1:/build/part-root:rwm \
     --device=${TARGET}p2:/build/part-data:rwm \
     --cap-add SYS_ADMIN \

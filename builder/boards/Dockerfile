@@ -8,8 +8,8 @@ ARG ROOT_CONTAINER_IMAGE
 
 FROM ubuntu AS cc-stage
 
-ARG ARCH
-ARG CROSS_COMPILE
+ARG GCC_ARCH
+ARG GCC_CROSS_COMPILE
 ARG UBOOT_DEFCONFIG
 ARG UBOOT_REPO
 ARG UBOOT_VERSION
@@ -17,8 +17,8 @@ ARG LINUX_DEFCONFIG
 ARG LINUX_REPO
 ARG LINUX_VERSION
 
-ENV ARCH=${ARCH}
-ENV CROSS_COMPILE=${CROSS_COMPILE}
+ENV ARCH=${GCC_ARCH}
+ENV CROSS_COMPILE=${GCC_CROSS_COMPILE}
 
 RUN apt-get update
 RUN apt-get install -y \
@@ -108,10 +108,6 @@ RUN \
     rc-update add ntpd default && \
     rc-update add docker default
 
-RUN mkdir /data
-
-COPY root /
-
 ######################################################
 #   installer image                                  #
 ######################################################
@@ -125,13 +121,11 @@ WORKDIR /build
 ARG LINUX_DT_NAME
 
 COPY --from=root-stage / copy-root/
-COPY --from=kernel-stage /build/linux/arch/arm/boot/zImage copy-root/boot/zImage
-COPY --from=kernel-stage /build/linux/arch/arm/boot/dts/${LINUX_DT_NAME}.dtb copy-root/boot/dt.dtb
-COPY --from=uboot-stage /build/boot.scr copy-root/boot/boot.scr
-COPY --from=uboot-stage /build/u-boot/*.bin u-boot/
-COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
-
-# can't be done in root stage where /etc/resolv.conf is mounted from host
-RUN echo "nameserver 8.8.8.8" >copy-root/etc/resolv.conf
+COPY root copy-root/
+#COPY --from=kernel-stage /build/linux/arch/arm/boot/zImage copy-root/boot/zImage
+#COPY --from=kernel-stage /build/linux/arch/arm/boot/dts/${LINUX_DT_NAME}.dtb copy-root/boot/dt.dtb
+#COPY --from=uboot-stage /build/boot.scr copy-root/boot/boot.scr
+#COPY --from=uboot-stage /build/u-boot/*.bin u-boot/
+#COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
 
 COPY install-* ./
