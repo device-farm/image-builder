@@ -1,0 +1,43 @@
+ORIG_PWD=$PWD
+
+cd drivers/net/wireless
+git clone -c advice.detachedHead=false --depth 1 https://github.com/fifteenhex/xradio.git
+
+echo 'source "drivers/net/wireless/xradio/Kconfig"' >>Kconfig
+
+# Original Kconfig from https://github.com/fifteenhex/xradio.git 
+# has a help sections which can not be parsed by kernel config for some reason.
+cat >xradio/Kconfig <<EOF
+config XRADIO
+       bool "XRADIO WLAN support"
+       depends on MAC80211
+       default n
+
+if XRADIO
+
+config XRADIO_NON_POWER_OF_TWO_BLOCKSIZES
+	bool "Platform supports non-power-of-two SDIO transfer"
+	depends on XRADIO
+	default y
+
+config XRADIO_5GHZ_SUPPORT
+	bool "5GHz band support"
+	depends on XRADIO
+	default n
+
+config XRADIO_WAPI_SUPPORT
+	bool "WAPI support"
+	depends on XRADIO
+	default n
+
+config XRADIO_USE_EXTENSIONS
+	bool "Extensions for WFD and PS mode"
+	depends on XRADIO
+	default y
+
+endif
+EOF
+
+echo 'obj-$(CONFIG_XRADIO) += xradio/' >>Makefile
+
+cd $ORIG_PWD

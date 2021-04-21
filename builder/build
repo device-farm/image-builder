@@ -14,20 +14,10 @@ addVar() {
     echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/defa/build
 }
 
-DIRS=$1
-while true; do
-    INV_DIRS="$DIRS $INV_DIRS"
-    if [ $(basename $DIRS) = boards ]; then
-        break
-    fi
-    DIRS=$(dirname $DIRS)
-done
+applyLayer() {
+    DIR=$1
 
-DOCKER_CTX=/tmp/build-ctx
-rm -rf $DOCKER_CTX
-mkdir -p $DOCKER_CTX/root/etc/defa
-
-for DIR in $INV_DIRS; do
+    echo "Applying layer $DIR"
 
     for FILE in $(find $DIR -maxdepth 1 -type f)
     do
@@ -44,7 +34,32 @@ for DIR in $INV_DIRS; do
     then
         cp -r $DIR/[root]/. $DOCKER_CTX/root
     fi
+}
+
+DIRS=$1
+while true; do
+    INV_DIRS="$DIRS $INV_DIRS"
+    if [ $(basename $DIRS) = boards ]; then
+        break
+    fi
+    DIRS=$(dirname $DIRS)
 done
+
+DOCKER_CTX=/tmp/build-ctx
+rm -rf $DOCKER_CTX
+mkdir -p $DOCKER_CTX/root/etc/defa
+
+for DIR in $INV_DIRS; do
+    applyLayer $DIR
+done
+
+if [ -f $DOCKER_CTX/layers ]
+then
+    for LAYER in $(cat $DOCKER_CTX/layers)
+    do
+        applyLayer $(sed "s/ .*//" <<<$INV_DIRS)/../layers/$LAYER
+    done
+fi
 
 date --iso-8601=seconds >>$DOCKER_CTX/_BUILD_DATE
 

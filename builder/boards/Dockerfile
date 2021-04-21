@@ -33,6 +33,7 @@ RUN apt-get install -y \
     bc \
     util-linux \
     dosfstools \
+    libssl-dev \
     u-boot-tools \
     curl
 
@@ -69,6 +70,9 @@ WORKDIR /build/linux
 
 COPY linux-defconfig .
 RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
+
+COPY kernel-tree-tweak .
+RUN ./kernel-tree-tweak
 
 RUN make ${LINUX_DEFCONFIG}
 RUN make
