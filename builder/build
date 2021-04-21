@@ -46,6 +46,8 @@ for DIR in $INV_DIRS; do
     fi
 done
 
+date --iso-8601=seconds >>$DOCKER_CTX/_BUILD_DATE
+
 addVar BOARD_ID $(basename $1)
 for FILE in $DOCKER_CTX/_*
 do    

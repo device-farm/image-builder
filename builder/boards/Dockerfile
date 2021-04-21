@@ -67,8 +67,8 @@ RUN git clone -c advice.detachedHead=false --depth 1 -b ${LINUX_VERSION} ${LINUX
 
 WORKDIR /build/linux
 
-COPY ext-defconfig-linux .
-RUN cat ext-defconfig-linux >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm ext-defconfig-linux
+COPY linux-defconfig .
+RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
 
 RUN make ${LINUX_DEFCONFIG}
 RUN make
@@ -79,34 +79,9 @@ RUN make
 
 FROM --platform=${ROOT_CONTAINER_PLATFORM} ${ROOT_CONTAINER_IMAGE} AS root-stage
 
-RUN apk add \
-    alpine-base \
-    dhcp \
-    wireguard-tools \
-    docker \
-    iptables \
-    ip6tables \
-    wpa_supplicant \
-    dropbear \
-    mc \
-    tree
-
-RUN \
-    rc-update add devfs sysinit && \
-    rc-update add mdev sysinit && \
-    rc-update add bootmisc boot && \
-    rc-update add hostname boot && \
-    rc-update add hwclock boot && \
-    rc-update add loopback boot && \
-    rc-update add networking boot && \
-    rc-update add cgroups boot && \
-    rc-update add syslog boot && \
-    rc-update add mount-ro shutdown && \
-    rc-update add killprocs shutdown && \
-    rc-update add savecache shutdown && \
-    rc-update add dropbear default && \
-    rc-update add ntpd default && \
-    rc-update add docker default
+COPY root-container-install ./
+RUN ./root-container-install
+RUN rm ./root-container-install
 
 ######################################################
 #   installer image                                  #
