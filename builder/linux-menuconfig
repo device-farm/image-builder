@@ -1,18 +1,17 @@
 #!/bin/bash
 set -e
 
-LINUX_DIR=$1
+DEFCONFIG_PATH=$(readlink --canonicalize $1)
+LINUX_DIR=$2
 
-if [ -z $LINUX_DIR ]
+if [ -z "$DEFCONFIG_PATH" -o -z "$LINUX_DIR" ]
 then
-    echo "Use: $(basename $0) <linux-source-dir>"
+    echo "Use: $(basename $0) <defconfig-fragment-path> <linux-source-dir>"
     exit 1
 fi
 
-BUILDER_DIR=$(readlink --canonicalize $(dirname $0))
-
+echo "DEFCONFIG_PATH=$DEFCONFIG_PATH"
 echo "LINUX_DIR=$LINUX_DIR"
-echo "BUILDER_DIR=$BUILDER_DIR"
 
 export ARCH=arm
 export CROSS_COMPILE=arm-none-eabi-
@@ -25,13 +24,13 @@ make savedefconfig
 cp defconfig defconfig-clean
 
 cat arch/$ARCH/configs/$DEFCONFIG >arch/$ARCH/configs/tmp_defconfig
-cat $BUILDER_DIR/boards/ext-defconfig-linux >>arch/$ARCH/configs/tmp_defconfig
+cat $DEFCONFIG_PATH >>arch/$ARCH/configs/tmp_defconfig
 make tmp_defconfig
 make menuconfig
 make savedefconfig
-diff defconfig defconfig-clean | grep "^< " | sed "s/^< //" | sort >$BUILDER_DIR/boards/ext-defconfig-linux
+diff defconfig defconfig-clean | grep "^< " | sed "s/^< //" | sort >$DEFCONFIG_PATH
 
 echo "Done. The config fragment is:"
 echo "------------------------------------------------------"
-cat $BUILDER_DIR/boards/ext-defconfig-linux
+cat $DEFCONFIG_PATH
 echo "------------------------------------------------------"
