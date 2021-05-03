@@ -1,9 +1,16 @@
 #!/bin/bash
 set -e
 
-cd $1
+DOCKER_IMAGE=$1
+shift
+LAYERS=$@
 
-echo "Building installer image in $(pwd)"
+if [ -z "$DOCKER_IMAGE" -o -z "$LAYERS" ]
+then
+    echo "Use: build <docker_image_name> <layers>..."
+fi
+
+echo "Building installer image $DOCKER_IMAGE on layers [$LAYERS]"
 
 addVar() {
     KEY=$1
@@ -11,59 +18,55 @@ addVar() {
     echo "$KEY=\"$VALUE\""
     eval "$KEY=\"$VALUE\""
     DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg \"$KEY=$VALUE\""
-    echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/defa/build
+    echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/build
 }
 
 applyLayer() {
-    DIR=$1
 
-    echo "Applying layer $DIR"
+    local LAYER=$1
+    local LAYER_DIR=$(dirname $0)/layers/$LAYER
 
-    for FILE in $(find $DIR -maxdepth 1 -type f)
+    if [ ! -d $LAYER_DIR ]
+    then
+        echo "Layer directory $LAYER_DIR does not exist"
+        exit 1
+    fi
+
+    if [ -f $LAYER_DIR/layer-deps ]
+    then
+        for LAYER_DEP in $(cat $LAYER_DIR/layer-deps)
+        do
+            applyLayer $LAYER_DEP
+        done
+    fi
+
+    echo "Applying layer $LAYER"
+
+    cp -r $LAYER_DIR/. $DOCKER_CTX
+
+    for APPEND in $(find $DOCKER_CTX -type f -regex '.*\.append$')
     do
-        if [[ $FILE =~ .*\.append$ ]]
-        then
-            DST=$DOCKER_CTX/$(basename $(sed s/.append$// <<<$FILE))
-            cat $FILE >>$DST
-        else
-            cp $FILE $DOCKER_CTX
-        fi
+        TARGET=$(echo $APPEND | sed 's/\.append$//')
+        cat $APPEND >>$TARGET
+        rm $APPEND
     done
 
-    if [ -d $DIR/[root] ]
-    then
-        cp -r $DIR/[root]/. $DOCKER_CTX/root
-    fi
 }
-
-DIRS=$1
-while true; do
-    INV_DIRS="$DIRS $INV_DIRS"
-    if [ $(basename $DIRS) = boards ]; then
-        break
-    fi
-    DIRS=$(dirname $DIRS)
-done
 
 DOCKER_CTX=/tmp/build-ctx
 rm -rf $DOCKER_CTX
-mkdir -p $DOCKER_CTX/root/etc/defa
+mkdir -p $DOCKER_CTX/root/etc
 
-for DIR in $INV_DIRS; do
-    applyLayer $DIR
+for LAYER in $LAYERS
+do
+    applyLayer $LAYER
 done
 
-if [ -f $DOCKER_CTX/layers ]
-then
-    for LAYER in $(cat $DOCKER_CTX/layers)
-    do
-        applyLayer $(sed "s/ .*//" <<<$INV_DIRS)/../layers/$LAYER
-    done
-fi
+rm $DOCKER_CTX/layer-deps
 
 date --iso-8601=seconds >>$DOCKER_CTX/_BUILD_DATE
 
-addVar BOARD_ID $(basename $1)
+addVar BOARD_ID $DOCKER_IMAGE
 for FILE in $DOCKER_CTX/_*
 do    
     KEY=$(echo $(basename $FILE) | sed s/^.//)
@@ -71,10 +74,21 @@ do
     addVar "$KEY" "$VALUE"
 done
 
+for FRAGMENT in top cc uboot kernel root installer
+do
+    cat >>$DOCKER_CTX/Dockerfile <<EOF
+##############################################
+# $FRAGMENT
+##############################################
+
+EOF
+    cat $DOCKER_CTX/Dockerfile-$FRAGMENT >>$DOCKER_CTX/Dockerfile
+    rm $DOCKER_CTX/Dockerfile-$FRAGMENT
+done
+
 tree $DOCKER_CTX
 
-DOCKER_IMAGE=$INSTALL_REPO/install-$BOARD_ID
+DOCKER_IMAGE=$BOARD_ID
 sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
-
 

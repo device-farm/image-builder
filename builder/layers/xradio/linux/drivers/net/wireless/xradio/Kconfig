@@ -1,13 +1,3 @@
-ORIG_PWD=$PWD
-
-cd drivers/net/wireless
-git clone -c advice.detachedHead=false --depth 1 https://github.com/fifteenhex/xradio.git
-
-echo 'source "drivers/net/wireless/xradio/Kconfig"' >>Kconfig
-
-# Original Kconfig from https://github.com/fifteenhex/xradio.git 
-# has a help sections which can not be parsed by kernel config for some reason.
-cat >xradio/Kconfig <<EOF
 config XRADIO
        bool "XRADIO WLAN support"
        depends on MAC80211
@@ -36,8 +26,3 @@ config XRADIO_USE_EXTENSIONS
 	default y
 
 endif
-EOF
-
-echo 'obj-$(CONFIG_XRADIO) += xradio/' >>Makefile
-
-cd $ORIG_PWD

@@ -1,0 +1,18 @@
+FROM cc-stage AS kernel-stage
+
+WORKDIR /build
+RUN git clone -c advice.detachedHead=false --depth 1 -b ${LINUX_VERSION} ${LINUX_REPO}
+
+COPY linux linux
+
+WORKDIR /build/linux
+
+COPY linux-defconfig .
+RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
+
+COPY kernel-tree-tweak .
+RUN ./kernel-tree-tweak
+
+RUN make ${LINUX_DEFCONFIG}
+RUN make
+

@@ -12,4 +12,4 @@
 - new uboot-tweak script
 - fork xradio driver (from buildroot?) for in-the-tree compilation, modify Kconfig, Makefile
 - add xradio firmware to xr819 layer [root]
-- rename xr819 layer to xradio
+- split base layer to uboot, kernel and root layers?

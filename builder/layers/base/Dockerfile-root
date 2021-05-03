@@ -1,0 +1,30 @@
+FROM --platform=${ROOT_CONTAINER_PLATFORM} ${ROOT_CONTAINER_IMAGE} AS root-stage
+
+RUN apk add \
+    alpine-base \
+    dhcp \
+    wireguard-tools \
+    docker \
+    iptables \
+    ip6tables \
+    wpa_supplicant \
+    dropbear \
+    mc \
+    tree
+
+RUN rc-update add devfs sysinit
+RUN rc-update add mdev sysinit
+RUN rc-update add bootmisc boot
+RUN rc-update add hostname boot
+RUN rc-update add hwclock boot
+RUN rc-update add loopback boot
+RUN rc-update add networking boot
+RUN rc-update add cgroups boot
+RUN rc-update add syslog boot
+RUN rc-update add mount-ro shutdown
+RUN rc-update add killprocs shutdown
+RUN rc-update add savecache shutdown
+RUN rc-update add dropbear default
+RUN rc-update add ntpd default
+RUN rc-update add docker default
+

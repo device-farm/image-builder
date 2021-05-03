@@ -1,0 +1,30 @@
+FROM ubuntu AS cc-stage
+
+ARG GCC_ARCH
+ARG GCC_CROSS_COMPILE
+ARG UBOOT_DEFCONFIG
+ARG UBOOT_REPO
+ARG UBOOT_VERSION
+ARG LINUX_DEFCONFIG
+ARG LINUX_REPO
+ARG LINUX_VERSION
+
+ENV ARCH=${GCC_ARCH}
+ENV CROSS_COMPILE=${GCC_CROSS_COMPILE}
+
+RUN apt-get update
+RUN apt-get install -y \
+    git \
+    build-essential \
+    libncurses-dev \
+    bison \
+    flex \
+    swig \
+    python3-pip \
+    python3-distutils \
+    bc \
+    util-linux \
+    dosfstools \
+    libssl-dev \
+    u-boot-tools \
+    curl
