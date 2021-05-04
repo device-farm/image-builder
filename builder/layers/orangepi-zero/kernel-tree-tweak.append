@@ -1,1 +1,0 @@
-cat xradio.patch | patch -p 1

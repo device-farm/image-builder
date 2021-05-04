@@ -1,7 +1,0 @@
-ORIG_PWD=$PWD
-
-cd drivers/net/wireless
-echo 'obj-$(CONFIG_XRADIO) += xradio/' >>Makefile
-echo 'source "drivers/net/wireless/xradio/Kconfig"' >>Kconfig
-
-cd $ORIG_PWD

@@ -1,0 +1,1 @@
+RUN make ${LINUX_DEFCONFIG}

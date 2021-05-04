@@ -6,11 +6,3 @@ RUN git clone -c advice.detachedHead=false --depth 1 -b ${UBOOT_VERSION} ${UBOOT
 
 WORKDIR /build/u-boot
 
-RUN make ${UBOOT_DEFCONFIG}
-RUN make
-
-WORKDIR /build
-
-COPY boot.cmd ./
-RUN mkimage -C none -A ${ARCH} -T script -d boot.cmd boot.scr
-

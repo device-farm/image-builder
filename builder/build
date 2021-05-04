@@ -76,15 +76,22 @@ done
 
 for FRAGMENT in top cc uboot kernel root installer
 do
-    cat >>$DOCKER_CTX/Dockerfile <<EOF
+        cat >>$DOCKER_CTX/Dockerfile <<EOF
+
 ##############################################
 # $FRAGMENT
 ##############################################
 
 EOF
-    cat $DOCKER_CTX/Dockerfile-$FRAGMENT >>$DOCKER_CTX/Dockerfile
-    rm $DOCKER_CTX/Dockerfile-$FRAGMENT
+    for FRAGMENT_FILE in $(ls $DOCKER_CTX/Dockerfile-$FRAGMENT* | sort)
+    do
+        cat $FRAGMENT_FILE >>$DOCKER_CTX/Dockerfile
+        rm $FRAGMENT_FILE
+    done
 done
+
+#cat $DOCKER_CTX/Dockerfile
+#exit 1
 
 tree $DOCKER_CTX
 
