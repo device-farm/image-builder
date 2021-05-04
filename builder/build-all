@@ -5,4 +5,4 @@ function build() {
     $(dirname $0)/build $@
 }
 
-build defa/orangepi-zero orangepi-zero defa
+build defa/orangepi-zero orangepi-zero

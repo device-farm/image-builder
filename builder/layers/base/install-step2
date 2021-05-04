@@ -12,11 +12,3 @@ cp -r copy-root/* mount-root
 cp -r custom-root/* mount-root
 umount mount-root
 
-echo "> Creating docker data mount point..."
-mkdir mount-data
-mount part-data mount-data
-mkdir mount-data/docker
-umount mount-data
-
-sync
-echo "> Done."

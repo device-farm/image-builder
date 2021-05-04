@@ -24,3 +24,5 @@ docker run \
     $DOCKER_IMAGE \
     /build/install-step2
 
+sync
+echo "> Done."
