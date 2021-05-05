@@ -6,9 +6,12 @@ then
     ./install-spl
 fi
 
-echo "> Creating partition table..."
-sfdisk target <<EOT
-1M,300M,L
-,500M,L
+ROOT_SIZE_MB=${ROOT_SIZE_MB:-500}
+
+echo "> Creating partition table, root size is ${ROOT_SIZE_MB}M..."
+
+sfdisk --wipe always target <<EOT
+1M,${ROOT_SIZE_MB}M,L
+,,L
 EOT
 
