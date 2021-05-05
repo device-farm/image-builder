@@ -1,0 +1,2 @@
+wpa_supplicant_if="wlan0"
+wpa_supplicant_dbus=no

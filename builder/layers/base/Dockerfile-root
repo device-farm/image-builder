@@ -3,7 +3,6 @@ FROM --platform=${ROOT_CONTAINER_PLATFORM} ${ROOT_CONTAINER_IMAGE} AS root-stage
 RUN apk add \
     alpine-base \
     dhcp \
-    wpa_supplicant \
     dropbear \
     mc \
     tree
