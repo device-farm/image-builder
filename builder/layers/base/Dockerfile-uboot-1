@@ -1,8 +1,14 @@
 FROM cc-stage AS uboot-stage
 
+ARG UBOOT_DEFCONFIG
+ARG UBOOT_REPO
+ARG UBOOT_VERSION
+
 WORKDIR /build
 
 RUN git clone -c advice.detachedHead=false --depth 1 -b ${UBOOT_VERSION} ${UBOOT_REPO}
 
 WORKDIR /build/u-boot
 
+COPY uboot-defconfig .
+RUN cat uboot-defconfig >>configs/${UBOOT_DEFCONFIG}; rm uboot-defconfig
