@@ -90,8 +90,8 @@ EOF
     done
 done
 
-#cat $DOCKER_CTX/install-step2
-#exit 1
+# cat $DOCKER_CTX/linux-defconfig
+# exit 1
 
 tree $DOCKER_CTX
 

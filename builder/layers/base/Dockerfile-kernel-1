@@ -10,3 +10,6 @@ WORKDIR /build/linux
 COPY linux-defconfig .
 RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
 
+COPY firmware /build/firmware
+RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f -printf '%P ')\"" >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}
+
