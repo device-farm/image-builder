@@ -1,10 +1,6 @@
 # image-builder
 
 ## TODO:
-- iptables
-- wireshark
-- avahi?
-- set hostname (custom-root)
-- uboot disable USB
+- finish defa layer
+- avahi layer
 - configurable root partition size or reserve
-- split base layer to uboot, kernel and root layers?
