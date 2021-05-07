@@ -1,3 +1,7 @@
 auto wlan0
-iface wlan0 inet dhcp
+iface wlan0 inet manual
+  post-up wpa_supplicant -Dnl80211 -i $IFACE -B -P /var/run/wpa_supplicant.pid -c /etc/wpa_supplicant/wpa_supplicant.conf
+  post-up udhcpc -A 0 -q -i $IFACE -p /var/run/udhcpc-$IFACE.pid &
+  post-down if [ -f /var/run/udhcpc-$IFACE.pid ]; then kill $(cat /var/run/udhcpc-$IFACE.pid); fi
+  post-down if [ -f /var/run/wpa_supplicant.pid ]; then kill $(cat /var/run/wpa_supplicant.pid); fi
 
