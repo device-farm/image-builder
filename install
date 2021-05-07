@@ -9,7 +9,6 @@ docker run \
     -it \
     -e ROOT_SIZE_MB=100 \
     --device=$DEVICE:/build/device:rwm \
-    -v /dev:/host-dev \
     --cap-add SYS_ADMIN \
     $DOCKER_IMAGE \
     /build/install-step1
