@@ -1,0 +1,3 @@
+RUN apk add dbus avahi
+RUN rc-update add avahi-daemon default
+

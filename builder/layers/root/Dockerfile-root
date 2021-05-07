@@ -1,10 +1,6 @@
 FROM --platform=${ROOT_CONTAINER_PLATFORM} ${ROOT_CONTAINER_IMAGE} AS root-stage
 
-RUN apk add \
-    alpine-base \
-    dropbear \
-    mc \
-    tree
+RUN apk add alpine-base
 
 RUN rc-update add devfs sysinit
 RUN rc-update add mdev sysinit
@@ -17,6 +13,5 @@ RUN rc-update add syslog boot
 RUN rc-update add mount-ro shutdown
 RUN rc-update add killprocs shutdown
 RUN rc-update add savecache shutdown
-RUN rc-update add dropbear default
 RUN rc-update add ntpd default
 
