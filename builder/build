@@ -99,8 +99,6 @@ done
 
 tree $DOCKER_CTX
 
-exit 1
-
 DOCKER_IMAGE=$BOARD_ID
 sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
