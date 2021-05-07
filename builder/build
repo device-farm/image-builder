@@ -24,6 +24,12 @@ addVar() {
 applyLayer() {
 
     local LAYER=$1
+
+    if [ -f $DOCKER_CTX/applied-layers/$LAYER ]
+    then
+        return
+    fi
+
     local LAYER_DIR=$(dirname $0)/layers/$LAYER
 
     if [ ! -d $LAYER_DIR ]
@@ -43,6 +49,8 @@ applyLayer() {
     echo "Applying layer $LAYER"
 
     cp -r $LAYER_DIR/. $DOCKER_CTX
+    mkdir -p $DOCKER_CTX/applied-layers
+    echo $LAYER_DIR >$DOCKER_CTX/applied-layers/$LAYER
 
     for APPEND in $(find $DOCKER_CTX -type f -regex '.*\.append$')
     do
@@ -50,7 +58,6 @@ applyLayer() {
         cat $APPEND >>$TARGET
         rm $APPEND
     done
-
 }
 
 DOCKER_CTX=/tmp/build-ctx
@@ -90,10 +97,9 @@ EOF
     done
 done
 
-# cat $DOCKER_CTX/linux-defconfig
-# exit 1
-
 tree $DOCKER_CTX
+
+exit 1
 
 DOCKER_IMAGE=$BOARD_ID
 sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
