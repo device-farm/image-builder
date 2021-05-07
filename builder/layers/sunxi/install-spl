@@ -1,5 +1,0 @@
-#!/bin/sh
-set -e
-
-echo "> Installing U-BOOT..."
-dd if=u-boot/u-boot-sunxi-with-spl.bin of=target bs=1024 seek=8

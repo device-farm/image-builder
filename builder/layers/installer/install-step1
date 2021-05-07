@@ -1,17 +1,4 @@
 #!/bin/sh
 set -e
 
-if [ -f ./install-spl ]
-then
-    ./install-spl
-fi
-
-ROOT_SIZE_MB=${ROOT_SIZE_MB:-500}
-
-echo "> Creating partition table, root size is ${ROOT_SIZE_MB}M..."
-
-sfdisk --wipe always target <<EOT
-1M,${ROOT_SIZE_MB}M,L
-,,L
-EOT
-
+./install-device /build/device

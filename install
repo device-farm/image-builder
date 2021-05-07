@@ -1,25 +1,25 @@
 #!/bin/bash
 set -e
 
-TARGET=/dev/mmcblk0
-DOCKER_IMAGE=defa/orangepi-zero
+DEVICE=/dev/mmcblk0
+DOCKER_IMAGE=defa/rpi-2-b
 
 docker run \
     --rm \
     -it \
-    -e ROOT_SIZE_MB=1024 \
-    --device=$TARGET:/build/target:rwm \
+    -e ROOT_SIZE_MB=100 \
+    --device=$DEVICE:/build/device:rwm \
+    -v /dev:/host-dev \
     --cap-add SYS_ADMIN \
     $DOCKER_IMAGE \
     /build/install-step1
-
 
 docker run \
     --rm \
     -it \
     -v $(pwd)/custom-root:/build/custom-root \
-    --device=${TARGET}p1:/build/part-root:rwm \
-    --device=${TARGET}p2:/build/part-data:rwm \
+    --device=${DEVICE}p1:/build/p1:rwm \
+    --device=${DEVICE}p2:/build/p2:rwm \
     --cap-add SYS_ADMIN \
     --security-opt apparmor=unconfined \
     $DOCKER_IMAGE \

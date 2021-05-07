@@ -4,3 +4,4 @@ iface eth0 inet manual
   post-up udhcpc -A 0 -q -i $IFACE -p /var/run/udhcpc-$IFACE.pid &
   post-down if [ -f /var/run/udhcpc-$IFACE.pid ]; then kill $(cat /var/run/udhcpc-$IFACE.pid); fi
   post-down ip link set $IFACE down
+

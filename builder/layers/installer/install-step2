@@ -2,13 +2,17 @@
 set -e
 
 echo "> Creating file systems..."
-mkfs.ext4 -F -L ROOT part-root
-mkfs.ext4 -F -L DATA part-data
+mkfs.ext4 -F -L ROOT /build/p1
+mkfs.ext4 -F -L DATA /build/p2
 
-echo "> Copying root file system..."
-mkdir mount-root
-mount part-root mount-root
-cp -r copy-root/* mount-root
-cp -r custom-root/* mount-root
-umount mount-root
+echo "> Mounting file systems..."
+mkdir /build/mount
+mount /build/p1 /build/mount
+mkdir /build/mount/data
+mount /build/p2 /build/mount/data
+
+./install-mount /build/mount
+
+umount mount/data
+umount mount
 

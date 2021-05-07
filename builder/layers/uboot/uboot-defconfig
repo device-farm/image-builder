@@ -1,0 +1,3 @@
+# no delay for autoboot abort
+CONFIG_BOOTDELAY=0
+

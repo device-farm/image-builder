@@ -1,5 +1,0 @@
-echo "> Creating docker data mount point..."
-mkdir mount-data
-mount part-data mount-data
-mkdir mount-data/docker
-umount mount-data

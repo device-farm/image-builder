@@ -1,0 +1,3 @@
+echo "> Installing U-BOOT SPL..."
+cp u-boot/u-boot.bin $MOUNT/boot/kernel.img
+

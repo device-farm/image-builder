@@ -3,5 +3,3 @@
 CONFIG_USE_PREBOOT=n
 CONFIG_PREBOOT=""
 
-# no delay for autoboot abort
-CONFIG_BOOTDELAY=0

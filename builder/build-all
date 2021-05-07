@@ -5,4 +5,5 @@ function build() {
     $(dirname $0)/build $@
 }
 
-build defa/orangepi-zero orangepi-zero dropbear avahi
+build defa/rpi-2-b rpi-2-b dropbear avahi
+#build defa/orangepi-zero orangepi-zero dropbear avahi
