@@ -1,13 +1,11 @@
-#!/bin/sh
-set -e
-
-DEVICE=/host-dev/mmcblk0
+BOOT_SIZE_MB=${BOOT_SIZE_MB:-50}
 ROOT_SIZE_MB=${ROOT_SIZE_MB:-500}
 
-echo "> Creating partition table, root size is ${ROOT_SIZE_MB}M..."
+echo "> Creating partition table..."
 
 sfdisk --wipe always $DEVICE <<EOT
-1M,${ROOT_SIZE_MB}M,L
-,100M,L
+1M,${BOOT_SIZE_MB}M
+,${ROOT_SIZE_MB}M
+,200M
 EOT
 

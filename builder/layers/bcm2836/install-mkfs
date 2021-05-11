@@ -1,0 +1,3 @@
+mkfs.vfat -n BOOT ${PART_PREFIX}1
+mkfs.ext4 -F -L ROOT ${PART_PREFIX}2
+mkfs.ext4 -F -L DATA ${PART_PREFIX}3

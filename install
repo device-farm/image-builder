@@ -19,6 +19,7 @@ docker run \
     -v $(pwd)/custom-root:/build/custom-root \
     --device=${DEVICE}p1:/build/p1:rwm \
     --device=${DEVICE}p2:/build/p2:rwm \
+    --device=${DEVICE}p3:/build/p3:rwm \
     --cap-add SYS_ADMIN \
     --security-opt apparmor=unconfined \
     $DOCKER_IMAGE \

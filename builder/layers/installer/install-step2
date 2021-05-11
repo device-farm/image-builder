@@ -1,18 +1,23 @@
 #!/bin/sh
 set -e
 
+PART_PREFIX=/build/p
+
 echo "> Creating file systems..."
-mkfs.ext4 -F -L ROOT /build/p1
-mkfs.ext4 -F -L DATA /build/p2
+. ./install-mkfs
 
 echo "> Mounting file systems..."
-mkdir /build/mount
-mount /build/p1 /build/mount
-mkdir /build/mount/data
-mount /build/p2 /build/mount/data
+MOUNT=/build/mount
+mkdir $MOUNT
+mount ${PART_PREFIX}2 $MOUNT
+mkdir $MOUNT/boot
+mount ${PART_PREFIX}1 $MOUNT/boot
+mkdir $MOUNT/data
+mount ${PART_PREFIX}3 $MOUNT/data
 
-./install-mount /build/mount
+. ./install-mount
 
-umount mount/data
-umount mount
+umount $MOUNT/boot
+umount $MOUNT/data
+umount $MOUNT
 

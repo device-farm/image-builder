@@ -1,4 +1,6 @@
 #!/bin/sh
 set -e
 
-./install-device /build/device
+DEVICE=/build/device
+
+. ./install-device

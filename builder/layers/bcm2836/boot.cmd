@@ -1,4 +1,4 @@
-setenv bootargs console=tty1 console=ttyAMA0,115200 console=ttyS0,115200 root=/dev/mmcblk0p1 rw,noatime rootwait panic=10
-load mmc 0:1 ${fdt_addr_r} boot/dt.dtb
-load mmc 0:1 ${kernel_addr_r} boot/zImage
+setenv bootargs console=tty1 console=ttyAMA0,115200 console=ttyS0,115200 root=/dev/mmcblk0p2 rw,noatime rootwait panic=10
+fatload mmc 0 ${fdt_addr_r} dt.dtb
+fatload mmc 0 ${kernel_addr_r} zImage
 bootz ${kernel_addr_r} - ${fdt_addr_r}
