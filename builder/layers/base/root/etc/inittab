@@ -10,7 +10,7 @@ tty1::respawn:/sbin/getty 38400 tty1
 # Put a getty on the serial port.
 # Since we leave root account disabled, getty is started with no login.
 # Change this, if an attacker could get physical access to your device.
-ttyS0::respawn:/sbin/getty -n -l /bin/ash -L ttyS0 115200 vt100
+ttyS0::respawn:/sbin/getty -n -l /bin/ash -L /etc/serial-console 115200 vt100
 
 # Stuff to do for the 3-finger salute.
 ::ctrlaltdel:/sbin/reboot
