@@ -1,3 +1,0 @@
-COPY xradio.patch .
-RUN cat xradio.patch | patch -p 1
-

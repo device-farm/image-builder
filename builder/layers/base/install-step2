@@ -15,6 +15,7 @@ mount ${PART_PREFIX}1 $MOUNT/boot
 mkdir $MOUNT/data
 mount ${PART_PREFIX}3 $MOUNT/data
 
+. ./install-dto
 . ./install-mount
 
 umount $MOUNT/boot
