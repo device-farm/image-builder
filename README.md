@@ -3,4 +3,6 @@
 ## TODO:
 - finish defa layer
 - install kernel modules to fs
-- dt overlays by configfs
+- single step install?
+- a way to export board info from installer
+- exportable config meta data

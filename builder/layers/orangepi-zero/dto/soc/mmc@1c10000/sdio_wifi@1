@@ -1,0 +1,2 @@
+compatible = "xradio,xr819";
+interrupts = <6 10 1>;

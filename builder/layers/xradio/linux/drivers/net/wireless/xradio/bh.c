@@ -776,7 +776,7 @@ static int xradio_bh(void *arg)
 		} else if (!status) {
 			/* check if there is data waiting but we missed the interrupt*/
 			if (xradio_bh_rx_availlen(hw_priv) > 0) {
-				dev_warn(hw_priv->pdev, "missed interrupt\n");
+				//dev_warn(hw_priv->pdev, "missed interrupt\n");
 				if(xradio_bh_exchange(hw_priv) < 0){
 					break;
 				}

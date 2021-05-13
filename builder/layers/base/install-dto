@@ -30,10 +30,10 @@ EOT
 
 }
 
-cp linux.dtb dtb
+mv linux.dtb dtb
 
+apply_dts dto
 apply_dts custom-dto
 
 mv dtb $MOUNT/boot/dtb
 
-fdtdump $MOUNT/boot/dtb
