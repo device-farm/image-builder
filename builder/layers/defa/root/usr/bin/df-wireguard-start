@@ -1,0 +1,22 @@
+#!/bin/sh
+
+set -e
+
+source /etc/df-wireguard
+
+umask 77
+echo $DEVICE_WG_PRIVATE_KEY >/tmp/df-key
+echo $DEVICE_WG_PRESHARED_KEY >/tmp/df-psk
+
+ip address add dev wg0 $DEVICE_WG_ADDR/$DEVICE_WG_MASK
+
+sysctl -w net.ipv4.conf.wg0.route_localnet=1
+iptables -t nat -A PREROUTING -d $DEVICE_WG_ADDR -j DNAT --to-destination 127.0.0.7
+
+WG_ENDPOINT_RESOLUTION_RETRIES=infinity wg set wg0 private-key /tmp/df-key \
+	peer $SERVER_WG_PUBLIC_KEY \
+	preshared-key /tmp/df-psk \
+	endpoint $SERVER_WG_HOST:$SERVER_WG_PORT \
+	persistent-keepalive 5 \
+	allowed-ips 0.0.0.0/0 &
+

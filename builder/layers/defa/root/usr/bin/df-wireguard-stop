@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -e
+
+source /etc/df-wireguard
+
+iptables -t nat -D PREROUTING -d $DEVICE_WG_ADDR -j DNAT --to-destination 127.0.0.7
+ip link del dev wg0
+

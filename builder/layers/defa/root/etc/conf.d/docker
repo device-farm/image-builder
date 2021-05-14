@@ -1,1 +1,0 @@
-DOCKER_OPTS="--host=unix:///var/run/docker.sock --host=tcp://127.0.0.7:2375 --data-root=/data/docker"

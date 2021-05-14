@@ -1,0 +1,7 @@
+auto wg0
+iface wg0 inet manual
+  pre-up ip link add dev wg0 type wireguard || true
+  up ip link set up dev wg0
+  post-up df-wireguard-start
+  post-down df-wireguard-stop
+
