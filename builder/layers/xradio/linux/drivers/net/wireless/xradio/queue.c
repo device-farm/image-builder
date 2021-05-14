@@ -93,9 +93,12 @@ static void xradio_queue_register_post_gc(struct list_head *gc_list,
 				     struct xradio_queue_item *item)
 {
 	struct xradio_queue_item *gc_item;
-	gc_item = kmalloc(sizeof(struct xradio_queue_item), GFP_KERNEL);
+	
+	/* MRK C90 */
+	gc_item = kmemdup(item, sizeof(struct xradio_queue_item), GFP_ATOMIC);
+	/* gc_item = kmalloc(sizeof(struct xradio_queue_item), GFP_KERNEL);	MRK C90 */
 	BUG_ON(!gc_item);
-	memcpy(gc_item, item, sizeof(struct xradio_queue_item));
+	/* memcpy(gc_item, item, sizeof(struct xradio_queue_item));		MRK C90 */
 	list_add_tail(&gc_item->head, gc_list);
 }
 
@@ -156,15 +159,10 @@ static void __xradio_queue_gc(struct xradio_queue *queue,
 	}
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 static void xradio_queue_gc(struct timer_list *t)
 {
 	struct xradio_queue *queue = from_timer(queue, t, gc);
-#else
-static void xradio_queue_gc(unsigned long arg)
-{
-	struct xradio_queue *queue = (struct xradio_queue *)arg;
-#endif
+
 	LIST_HEAD(list);
 
 	spin_lock_bh(&queue->lock);
@@ -175,7 +173,6 @@ static void xradio_queue_gc(unsigned long arg)
 
 int xradio_queue_stats_init(struct xradio_queue_stats *stats,
 			    size_t map_capacity,
-                            size_t map_capacity_size,
 			    xradio_queue_skb_dtor_t skb_dtor,
 			    struct xradio_common *hw_priv)
 {
@@ -188,7 +185,8 @@ int xradio_queue_stats_init(struct xradio_queue_stats *stats,
 	spin_lock_init(&stats->lock);
 	init_waitqueue_head(&stats->wait_link_id_empty);
 	for (i = 0; i < XRWL_MAX_VIFS; i++) {
-		stats->link_map_cache[i] = kzalloc(map_capacity_size, GFP_KERNEL);
+		/* MRK C90 */
+		stats->link_map_cache[i] = kzalloc(sizeof(int) * map_capacity, GFP_KERNEL);
 		if (!stats->link_map_cache[i]) {
 			for (; i >= 0; i--)
 				kfree(stats->link_map_cache[i]);
@@ -216,23 +214,16 @@ int xradio_queue_init(struct xradio_queue *queue,
 	INIT_LIST_HEAD(&queue->pending);
 	INIT_LIST_HEAD(&queue->free_pool);
 	spin_lock_init(&queue->lock);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 	timer_setup(&queue->gc, xradio_queue_gc, 0);
-#else
-	init_timer(&queue->gc);
-	queue->gc.data = (unsigned long)queue;
-	queue->gc.function = xradio_queue_gc;
-#endif
 
 	queue->pool = kzalloc(sizeof(struct xradio_queue_item) * capacity,
 	                         GFP_KERNEL);
 	if (!queue->pool)
 		return -ENOMEM;
-
+	/* MRK C90 */
 	for (i = 0; i < XRWL_MAX_VIFS; i++) {
 		queue->link_map_cache[i] =
-				kzalloc(sizeof(int) * stats->map_capacity,
-					GFP_KERNEL);
+				kzalloc(sizeof(int) * stats->map_capacity, GFP_KERNEL);
 		if (!queue->link_map_cache[i]) {
 			for (; i >= 0; i--)
 				kfree(queue->link_map_cache[i]);
@@ -370,7 +361,7 @@ int xradio_queue_put(struct xradio_queue *queue, struct sk_buff *skb,
                      struct xradio_txpriv *txpriv)
 {
 	int ret = 0;
-	LIST_HEAD(gc_list);
+	/* MRK 5.3 - removed LIST_HEAD(gc_list); */
 	struct xradio_queue_stats *stats = queue->stats;
 	/* TODO:COMBO: Add interface ID info to queue item */
 

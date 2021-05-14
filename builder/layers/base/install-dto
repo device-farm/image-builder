@@ -4,7 +4,7 @@ function apply_dts() {
 
     local DTO_DIR=$1
 
-    for DTSO in $(find $DTO_DIR -type f); do
+    for DTSO in $(find $DTO_DIR -type f \! -name ".*"); do
         local TARGET=$(echo $DTSO | sed "s/[^/]*//")
         echo "  $TARGET"
 

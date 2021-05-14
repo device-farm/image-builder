@@ -11,6 +11,9 @@ COPY linux linux
 
 WORKDIR /build/linux
 
+COPY linux.patch .
+RUN cat linux.patch | patch -p1
+
 COPY linux-defconfig .
 RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
 

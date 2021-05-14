@@ -73,7 +73,6 @@ struct xradio_txpriv {
 
 int xradio_queue_stats_init(struct xradio_queue_stats *stats,
                             size_t map_capacity,
-                            size_t map_capacity_size,
                             xradio_queue_skb_dtor_t skb_dtor,
                             struct xradio_common *priv);
 int xradio_queue_init(struct xradio_queue *queue,

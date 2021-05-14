@@ -3,7 +3,8 @@ set -e
 
 DEVICE=/dev/mmcblk0
 #DOCKER_IMAGE=defa/rpi-2-b
-DOCKER_IMAGE=defa/orangepi-zero
+#DOCKER_IMAGE=defa/orangepi-zero
+DOCKER_IMAGE=defa/nanopi-duo
 
 docker run \
     --rm \

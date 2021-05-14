@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e 
+
+rm -rf linux
+mkdir -p linux/drivers/net/wireless
+git -C linux/drivers/net/wireless clone --depth 1 https://github.com/karabek/xradio
+
+rm -rf linux/drivers/net/wireless/xradio/dts
+rm -rf linux/drivers/net/wireless/xradio/.gitignore
+
+rm -rf firmware
+mkdir firmware
+mv linux/drivers/net/wireless/xradio/firmware firmware/xr819
+rm firmware/xr819/device-xradio.mk
+
+sed -i 's/---help---/help/g' "linux/drivers/net/wireless/xradio/Kconfig"

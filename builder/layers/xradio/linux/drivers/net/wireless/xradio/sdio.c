@@ -10,7 +10,6 @@
  */
 
 #include <linux/module.h>
-#include <linux/interrupt.h>
 #include <linux/mmc/host.h>
 #include <linux/mmc/sdio_func.h>
 #include <linux/mmc/card.h>
@@ -18,6 +17,7 @@
 #include <asm/mach-types.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
+#include <linux/interrupt.h>
 
 #include "xradio.h"
 #include "sdio.h"
@@ -38,9 +38,7 @@ int sdio_data_read(struct xradio_common* self, unsigned int addr,
 {
 	int ret = sdio_memcpy_fromio(self->sdio_func, dst, addr, count);
 //	printk("sdio_memcpy_fromio 0x%x:%d ret %d\n", addr, count, ret);
-#if defined(CONFIG_XRADIO_DEBUG)
 //	print_hex_dump_bytes("sdio read ", 0, dst, min(count,32));
-#endif /* CONFIG_XRADIO_DEBUG */
 	return ret;
 }
 
@@ -49,9 +47,7 @@ int sdio_data_write(struct xradio_common* self, unsigned int addr,
 {
 	int ret = sdio_memcpy_toio(self->sdio_func, addr, (void *)src, count);
 //	printk("sdio_memcpy_toio 0x%x:%d ret %d\n", addr, count, ret);
-#if defined(CONFIG_XRADIO_DEBUG)
 //	print_hex_dump_bytes("sdio write", 0, src, min(count,32));
-#endif /* CONFIG_XRADIO_DEBUG */
 	return ret;
 }
 
@@ -117,7 +113,7 @@ int sdio_pm(struct xradio_common *self, bool  suspend)
 		/* Notify SDIO that XRADIO will remain powered during suspend */
 		ret = sdio_set_host_pm_flags(self->sdio_func, MMC_PM_KEEP_POWER);
 		if (ret)
-			dev_dbg(&self->sdio_func->dev, "Error setting SDIO pm flags: %i\n", ret);
+			xr_printk(XRADIO_DBG_WARN, "SDIO: Error setting SDIO pm flags #%i\n", ret);
 	}
 
 	return ret;
@@ -134,6 +130,7 @@ static int xradio_probe_of(struct sdio_func *func)
 	struct device_node *np = dev->of_node;
 	const struct of_device_id *of_id;
 	int irq;
+	int ret;
 
 	of_id = of_match_node(xradio_sdio_of_match_table, np);
 	if (!of_id)
@@ -143,23 +140,29 @@ static int xradio_probe_of(struct sdio_func *func)
 
 	irq = irq_of_parse_and_map(np, 0);
 	if (!irq) {
-		dev_err(dev, "No irq in platform data\n");
+		xr_printk(XRADIO_DBG_ERROR, "SDIO: No irq in platform data\n");
 		return -EINVAL;
 	}
 
-	return devm_request_irq(dev, irq, sdio_irq_handler, 0, "xradio", func);
+	ret = devm_request_irq(dev, irq, sdio_irq_handler, 0, "xradio", func);
+	if (ret) {
+		xr_printk(XRADIO_DBG_ERROR, "SDIO: Failed to request irq_wakeup.\n");
+		return -EINVAL;
+	}
+
+	return 0;
 }
 
 /* Probe Function to be called by SDIO stack when device is discovered */
 static int sdio_probe(struct sdio_func *func,
                       const struct sdio_device_id *id)
 {
-	dev_dbg(&func->dev, "XRadio Device:sdio clk=%d\n",
-	            func->card->host->ios.clock);
-	dev_dbg(&func->dev, "sdio func->class=%x\n", func->class);
-	dev_dbg(&func->dev, "sdio_vendor: 0x%04x\n", func->vendor);
-	dev_dbg(&func->dev, "sdio_device: 0x%04x\n", func->device);
-	dev_dbg(&func->dev, "Function#: 0x%04x\n",   func->num);
+	xr_printk(XRADIO_DBG_ALWY, "XR819 device discovered\n");
+	xr_printk(XRADIO_DBG_MSG, "SDIO: clock  = %d\n", func->card->host->ios.clock);
+	xr_printk(XRADIO_DBG_MSG, "SDIO: class  = %x\n", func->class);
+	xr_printk(XRADIO_DBG_MSG, "SDIO: vendor = 0x%04x\n", func->vendor);
+	xr_printk(XRADIO_DBG_MSG, "SDIO: device = 0x%04x\n", func->device);
+	xr_printk(XRADIO_DBG_MSG, "SDIO: fctn#  = 0x%04x\n", func->num);
 
 #if 0  //for odly and sdly debug.
 {
@@ -170,7 +173,7 @@ static int sdio_probe(struct sdio_func *func,
 	sdio_param &= ~(0xf<<20);
 	sdio_param |= s_dly<<20;
 	writel(sdio_param, __io_address(0x01c20088));
-	sbus_printk(XRADIO_DBG_ALWY, "%s: 0x01c20088=0x%08x\n", __func__, sdio_param);
+	xr_printk(XRADIO_DBG_ALWY, "%s: 0x01c20088=0x%08x\n", __func__, sdio_param);
 }
 #endif
 

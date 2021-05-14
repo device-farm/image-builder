@@ -73,7 +73,7 @@ void xradio_unregister_bh(struct xradio_common *hw_priv)
 #ifdef HAS_PUT_TASK_STRUCT
 	put_task_struct(thread);
 #endif
-	dev_dbg(hw_priv->pdev, "Unregister success.\n");
+	xr_printk(XRADIO_DBG_MSG, "BH: Unregister success.\n");
 }
 
 void xradio_irq_handler(struct xradio_common *hw_priv)
@@ -146,7 +146,7 @@ int xradio_bh_resume(struct xradio_common *hw_priv)
 			  (priv->multicast_filter.enable)) {
 			u8 count = 0;
 			WARN_ON(wsm_request_buffer_request(priv, &count));
-			dev_dbg(hw_priv->pdev, "Reclaim Buff %d \n",count);
+			xr_printk(XRADIO_DBG_MSG, "BH: Reclaim Buff %d \n",count);
 			break;
 		}
 	}
@@ -176,7 +176,7 @@ int wsm_release_tx_buffer(struct xradio_common *hw_priv, int count)
 		   So, re-start tx path in case we find hw_bufs_used equals
 		   numInputChBufs - 1.
 		*/
-		dev_err(hw_priv->pdev, "hw_bufs_used=%d, count=%d.\n",
+		xr_printk(XRADIO_DBG_ERROR, "BH: hw_bufs_used=%d, count=%d.\n",
 				hw_priv->hw_bufs_used, count);
 		ret = -1;
 	} else if (hw_bufs_used >= (hw_priv->wsm_caps.numInpChBufs - 1))
@@ -211,7 +211,7 @@ int wsm_release_buffer_to_fw(struct xradio_vif *priv, int count)
 	if (priv->join_status != XRADIO_JOIN_STATUS_AP) {
 		return 0;
 	}
-	dev_dbg(hw_priv->pdev, "Rel buffer to FW %d, %d\n", count, hw_priv->hw_bufs_used);
+	xr_printk(XRADIO_DBG_MSG, "BH: Release buffer to FW %d, %d\n", count, hw_priv->hw_bufs_used);
 
 	for (i = 0; i < count; i++) {
 		if ((hw_priv->hw_bufs_used + 1) < hw_priv->wsm_caps.numInpChBufs) {
@@ -228,7 +228,7 @@ int wsm_release_buffer_to_fw(struct xradio_vif *priv, int count)
 			wsm->id &= __cpu_to_le32(~WSM_TX_SEQ(WSM_TX_SEQ_MAX));
 			wsm->id |= cpu_to_le32(WSM_TX_SEQ(hw_priv->wsm_tx_seq));
 
-			dev_dbg(hw_priv->pdev, "REL %d\n", hw_priv->wsm_tx_seq);
+			xr_printk(XRADIO_DBG_MSG, "BH: REL %d\n", hw_priv->wsm_tx_seq);
 			if (WARN_ON(xradio_data_write(hw_priv, buf->begin, buf_len))) {
 				break;
 			}
@@ -243,7 +243,7 @@ int wsm_release_buffer_to_fw(struct xradio_vif *priv, int count)
 	}
 
 	/* Should not be here */
-	dev_dbg(hw_priv->pdev, "Error, Less HW buf %d,%d.\n",
+	xr_printk(XRADIO_DBG_ERROR, "BH: Error, Less HW buf %d,%d.\n",
 	          hw_priv->hw_bufs_used, hw_priv->wsm_caps.numInpChBufs);
 	WARN_ON(1);
 	return -1;
@@ -260,7 +260,7 @@ int xradio_init_resv_skb(struct xradio_common *hw_priv)
 	if (hw_priv->skb_reserved) {
 		hw_priv->skb_resv_len = len;
 	} else {
-		dev_warn(hw_priv->pdev, "xr_alloc_skb failed(%d)\n", len);
+		xr_printk(XRADIO_DBG_WARN, "BH: initial dev_alloc_skb failed(%d)\n", len);
 	}
 	return 0;
 }
@@ -274,23 +274,21 @@ void xradio_deinit_resv_skb(struct xradio_common *hw_priv)
 	}
 }
 
-int xradio_realloc_resv_skb(struct xradio_common *hw_priv,
-							struct sk_buff *skb)
+int xradio_realloc_resv_skb(struct xradio_common *hw_priv, struct sk_buff *skb)
 {
 	if (!hw_priv->skb_reserved && hw_priv->skb_resv_len) {
 		hw_priv->skb_reserved = dev_alloc_skb(hw_priv->skb_resv_len);
 		if (!hw_priv->skb_reserved) {
 			hw_priv->skb_reserved = skb;
-			dev_warn(hw_priv->pdev, "xr_alloc_skb failed(%d)\n",
-					hw_priv->skb_resv_len);
-			return -1;
+			xr_printk(XRADIO_DBG_ERROR, "BH %s: could not allocate skb (%d)!\n",
+					__func__, hw_priv->skb_resv_len);
+			return -ENOMEM; 	/* MRK#  -1 */
 		}
 	}
 	return 0; /* realloc sbk success, deliver to upper.*/
 }
 
-static inline struct sk_buff *xradio_get_resv_skb(struct xradio_common *hw_priv,
-												  size_t len)
+static inline struct sk_buff *xradio_get_resv_skb(struct xradio_common *hw_priv, size_t len)
 {	struct sk_buff *skb = NULL;
 	if (hw_priv->skb_reserved && len <= hw_priv->skb_resv_len) {
 		skb = hw_priv->skb_reserved;
@@ -299,8 +297,7 @@ static inline struct sk_buff *xradio_get_resv_skb(struct xradio_common *hw_priv,
 	return skb;
 }
 
-static inline int xradio_put_resv_skb(struct xradio_common *hw_priv,
-									  struct sk_buff *skb)
+static inline int xradio_put_resv_skb(struct xradio_common *hw_priv, struct sk_buff *skb)
 {
 	if (!hw_priv->skb_reserved && hw_priv->skb_resv_len) {
 		hw_priv->skb_reserved = skb;
@@ -326,11 +323,11 @@ static struct sk_buff *xradio_get_skb(struct xradio_common *hw_priv, size_t len)
 		} else {
 			skb = xradio_get_resv_skb(hw_priv, alloc_len);
 			if (skb) {
-				dev_dbg(hw_priv->pdev, "get skb_reserved(%d)!\n", alloc_len);
+				xr_printk(XRADIO_DBG_WARN, "BH: no skb avail., using reserve skb (%d)!\n", alloc_len);
 				skb_reserve(skb, WSM_TX_EXTRA_HEADROOM + 8 /* TKIP IV */
 						    - WSM_RX_EXTRA_HEADROOM);
 			} else {
-				dev_dbg(hw_priv->pdev, "xr_alloc_skb failed(%d)!\n", alloc_len);
+				xr_printk(XRADIO_DBG_WARN, "BH - get_skb: no skb avail, no reserve (%d)!\n", alloc_len);
 			}
 		}
 	} else {
@@ -348,8 +345,7 @@ static void xradio_put_skb(struct xradio_common *hw_priv, struct sk_buff *skb)
 		hw_priv->skb_cache = skb;
 }
 
-static int xradio_bh_read_ctrl_reg(struct xradio_common *hw_priv,
-					  u16 *ctrl_reg)
+static int xradio_bh_read_ctrl_reg(struct xradio_common *hw_priv, u16 *ctrl_reg)
 {
 	int ret;
 	ret = xradio_reg_read_16(hw_priv, HIF_CONTROL_REG_ID, ctrl_reg);
@@ -357,7 +353,7 @@ static int xradio_bh_read_ctrl_reg(struct xradio_common *hw_priv,
 		ret = xradio_reg_read_16(hw_priv, HIF_CONTROL_REG_ID, ctrl_reg);
 		if (ret) {
 			hw_priv->bh_error = 1;
-			dev_err(hw_priv->pdev, "Failed to read control register.\n");
+			xr_printk(XRADIO_DBG_ERROR, "BH: Failed to read control register.\n");
 		}
 	}
 
@@ -386,11 +382,11 @@ static int xradio_device_wakeup(struct xradio_common *hw_priv)
 		i++;
 	}
 	if (unlikely(i >= 500)) {
-		dev_err(hw_priv->pdev, "Device cannot wakeup.\n");
+		xr_printk(XRADIO_DBG_ERROR, "BH: Device cannot wakeup.\n");
 		return -1;
 	} else if (unlikely(i >= 50))
-		dev_warn(hw_priv->pdev, "Device wakeup time=%dms.\n", i);
-	dev_dbg(hw_priv->pdev, "Device awake, t=%dms.\n", i);
+		xr_printk(XRADIO_DBG_WARN, "BH: Device wakeup time=%dms.\n", i);
+	xr_printk(XRADIO_DBG_MSG, "BH: Device awake, t=%dms.\n", i);
 	return 1;
 }
 
@@ -438,12 +434,10 @@ static void xradio_bh_rx_dump(struct device *dev, u8 *data, size_t len){
 		msgname = "scan result";
 	}
 
-	dev_dbg(dev, "vif %d: sdio rx, msgid %s(0x%.4X) len %d\n",
+	xr_printk(XRADIO_DBG_MSG, "BH: vif %d: sdio rx, msgid %s(0x%.4X) len %d\n",
 			ifid, msgname, msgid, *p);
-#if defined(CONFIG_XRADIO_DEBUG)
 //	print_hex_dump_bytes("<-- ", DUMP_PREFIX_NONE,
 //	                     data, min(len, (size_t) 64));
-#endif /* CONFIG_XRADIO_DEBUG */
 #endif
 }
 
@@ -473,7 +467,7 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 		return read_len;
 
 	if (read_len < sizeof(struct wsm_hdr) || (read_len > EFFECTIVE_BUF_SIZE)) {
-		dev_err(hw_priv->pdev, "Invalid read len: %d", read_len);
+		xr_printk(XRADIO_DBG_ERROR, "BH: Invalid read len: %d", read_len);
 		return -1;
 	}
 
@@ -484,20 +478,20 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 	alloc_len = sdio_align_len(hw_priv, read_len);
 	/* Check if not exceeding XRADIO capabilities */
 	if (WARN_ON_ONCE(alloc_len > EFFECTIVE_BUF_SIZE)) {
-		dev_err(hw_priv->pdev, "Read aligned len: %d\n", alloc_len);
+		xr_printk(XRADIO_DBG_ERROR, "BH: Read aligned len: %d\n", alloc_len);
 	}
 
 	/* Get skb buffer. */
 	skb_rx = xradio_get_skb(hw_priv, alloc_len);
 	if (!skb_rx) {
-		dev_err(hw_priv->pdev, "xradio_get_skb failed.\n");
+		xr_printk(XRADIO_DBG_ERROR, "BH: xradio_get_skb failed.\n");
 		return -ENOMEM;
 	}
 	skb_trim(skb_rx, 0);
 	skb_put(skb_rx, read_len);
 	data = skb_rx->data;
 	if (!data) {
-		dev_err(hw_priv->pdev, "skb data is NULL.\n");
+		xr_printk(XRADIO_DBG_ERROR, "BH: skb data is NULL.\n");
 		ret = -ENOMEM;
 		goto out;
 	}
@@ -520,7 +514,7 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 	wsm_len = __le32_to_cpu(wsm->len);
 
 	if (WARN_ON(wsm_len > read_len)) {
-		dev_err(hw_priv->pdev, "wsm is bigger than data read, read %d but frame is %d\n",
+		xr_printk(XRADIO_DBG_ERROR, "BH: wsm is bigger than data read, read %d but frame is %d\n",
 				read_len, wsm_len);
 		ret = -1;
 		goto out;
@@ -536,11 +530,11 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 
 	/* process exceptions. */
 	if (wsm_id == 0) {
-		printk("wtf?\n");
+		printk("BH: wtf?\n");
 		ret = 0;
 		goto out;
 	} else if (unlikely(wsm_id == 0x0800)) {
-		dev_err(hw_priv->pdev, "firmware exception!\n");
+		xr_printk(XRADIO_DBG_ERROR, "BH: firmware exception!\n");
 		wsm_handle_exception(hw_priv, &data[sizeof(*wsm)],
 				wsm_len - sizeof(*wsm));
 		ret = -1;
@@ -552,7 +546,7 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 	/* Process tx frames confirm. */
 	if (wsm_id & 0x0400) {
 		if (wsm_release_tx_buffer(hw_priv, 1) < 0) {
-			dev_err(hw_priv->pdev, "tx buffer < 0.\n");
+			xr_printk(XRADIO_DBG_ERROR, "BH: tx buffer < 0.\n");
 			ret  = -1;
 			goto out;
 		}
@@ -560,7 +554,7 @@ static int xradio_bh_rx(struct xradio_common *hw_priv, u16* nextlen) {
 
 	/* WSM processing frames. */
 	if (wsm_handle_rx(hw_priv, wsm_id, wsm, &skb_rx)) {
-		dev_err(hw_priv->pdev, "wsm_handle_rx failed.\n");
+		xr_printk(XRADIO_DBG_ERROR, "BH: wsm_handle_rx failed.\n");
 		ret = -1;
 		goto out;
 	}
@@ -628,10 +622,10 @@ static void xradio_bh_tx_dump(struct device *dev, u8 *data, size_t len){
 	WARN_ON(msgnames[msgid] == NULL);
 
 	if (msgid == 0x0006) {
-		dev_dbg(dev, "vif %d: sdio tx, msgid %s(0x%.4X) len %d MIB %s(0x%.4X)\n",
+		xr_printk(XRADIO_DBG_NIY, "BH: vif %d: sdio tx, msgid %s(0x%.4X) len %d MIB %s(0x%.4X)\n",
 				ifid, msgnames[msgid], msgid,*p, mibnames[mib], mib);
 	} else {
-		dev_dbg(dev, "vif %d: sdio tx, msgid %s(0x%.4X) len %d\n", ifid, msgnames[msgid], msgid, *p);
+		xr_printk(XRADIO_DBG_NIY, "BH: vif %d: sdio tx, msgid %s(0x%.4X) len %d\n", ifid, msgnames[msgid], msgid, *p);
 	}
 
 //	print_hex_dump_bytes("--> ", DUMP_PREFIX_NONE, data,
@@ -659,8 +653,7 @@ static int xradio_bh_tx(struct xradio_common *hw_priv){
 			} else if (ret) {
 				hw_priv->device_can_sleep = false;
 			} else { /* Wait for "awake" interrupt */
-				dev_dbg(hw_priv->pdev,
-						"need to wait for device to wake before doing tx\n");
+				xr_printk(XRADIO_DBG_MSG, "BH: need to wait for device to wake before doing tx\n");
 				return 0;
 			}
 		}
@@ -672,7 +665,7 @@ static int xradio_bh_tx(struct xradio_common *hw_priv){
 		if (ret <= 0) {
 			wsm_release_tx_buffer(hw_priv, 1);
 			if (WARN_ON(ret < 0)) {
-				dev_err(hw_priv->pdev, "wsm_get_tx=%d.\n", ret);
+				xr_printk(XRADIO_DBG_ERROR, "BH: wsm_get_tx=%d.\n", ret);
 				return -ENOMEM;
 			} else {
 				return 0;
@@ -689,7 +682,7 @@ static int xradio_bh_tx(struct xradio_common *hw_priv){
 
 			/* Check if not exceeding XRADIO capabilities */
 			if (tx_len > EFFECTIVE_BUF_SIZE) {
-				dev_warn(hw_priv->pdev, "Write aligned len: %d\n", tx_len);
+				xr_printk(XRADIO_DBG_WARN, "BH: Write aligned len: %d\n", tx_len);
 			}
 
 			/* Make sequence number. */
@@ -699,7 +692,7 @@ static int xradio_bh_tx(struct xradio_common *hw_priv){
 			/* Send the data to devices. */
 			if (WARN_ON(xradio_data_write(hw_priv, data, tx_len))) {
 				wsm_release_tx_buffer(hw_priv, 1);
-				dev_err(hw_priv->pdev, "xradio_data_write failed\n");
+				xr_printk(XRADIO_DBG_WARN, "BH: xradio_data_write failed\n");
 				return -EIO;
 			}
 
@@ -749,6 +742,7 @@ static int xradio_bh(void *arg)
 	struct xradio_common *hw_priv = arg;
 	int term, suspend;
 	int wake = 0;
+	int missed = 0;		/* MRK# */
 	long timeout;
 	long status;
 
@@ -767,35 +761,39 @@ static int xradio_bh(void *arg)
 				break;
 			}
 		} else if (term) {
-			dev_dbg(hw_priv->pdev, "xradio_bh exit!\n");
+			xr_printk(XRADIO_DBG_MSG, "BH: xradio_bh exit!\n");
 			break;
 		} else if (status < 0) {
-			dev_err(hw_priv->pdev, "bh_error=%d, status=%ld\n",
+			xr_printk(XRADIO_DBG_ERROR, "BH: bh_error=%d, status=%ld\n",
 					hw_priv->bh_error, status);
 			break;
 		} else if (!status) {
-			/* check if there is data waiting but we missed the interrupt*/
+			/* check if there is data waiting but we missed the interrupt */
 			if (xradio_bh_rx_availlen(hw_priv) > 0) {
-				//dev_warn(hw_priv->pdev, "missed interrupt\n");
+				missed++;
+				if (missed > 3) {
+					xr_printk(XRADIO_DBG_WARN, "BH: missed %d consecutive interrupts!\n", missed);
+				}
 				if(xradio_bh_exchange(hw_priv) < 0){
 					break;
 				}
-			}
+			} 
 			/* There are some frames to be confirmed. */
 			else if (hw_priv->hw_bufs_used) {
 				long timeout = 0;
 				bool pending = 0;
-				dev_dbg(hw_priv->pdev, "Need confirm:%d!\n",
+				xr_printk(XRADIO_DBG_MSG, "BH: frame needs confirm:%d!\n",
 						hw_priv->hw_bufs_used);
 				/* Check if frame transmission is timed out. */
 				pending = xradio_query_txpkt_timeout(hw_priv, XRWL_ALL_IFS,
 						hw_priv->pending_frame_id, &timeout);
 				/* There are some frames confirm time out. */
 				if (pending && timeout < 0) {
-					dev_err(hw_priv->pdev, "query_txpkt_timeout:%ld!\n",
+					xr_printk(XRADIO_DBG_ERROR, "BH: query_txpkt_timeout:%ld!\n",
 							timeout);
 					break;
 				}
+				missed = 0;
 			} //else if (!txpending){
 			  //if (hw_priv->powersave_enabled && !hw_priv->device_can_sleep && !atomic_read(&hw_priv->recent_scan)) {
 			  //	/* Device is idle, we can go to sleep. */
@@ -806,11 +804,10 @@ static int xradio_bh(void *arg)
 			  //continue;
 			  //}
 		} else if (suspend) {
-			dev_dbg(hw_priv->pdev, "Host suspend request.\n");
+			xr_printk(XRADIO_DBG_MSG, "BH: Host suspend request.\n");
 			/* Check powersave setting again. */
 			if (hw_priv->powersave_enabled) {
-				dev_dbg(hw_priv->pdev,
-						"Device idle(host suspend), can sleep.\n");
+				xr_printk(XRADIO_DBG_MSG, "BH: Device idle (host suspend), can sleep.\n");
 				WARN_ON(xradio_reg_write_16(hw_priv, HIF_CONTROL_REG_ID, 0));
 				hw_priv->device_can_sleep = true;
 			}
@@ -822,17 +819,17 @@ static int xradio_bh(void *arg)
 					XRADIO_BH_RESUME == atomic_read(&hw_priv->bh_suspend));
 
 			if (status < 0) {
-				dev_err(hw_priv->pdev, "Failed to wait for resume: %ld.\n",
+				xr_printk(XRADIO_DBG_ERROR, "BH: Failed to wait for resume: %ld.\n",
 						status);
 				break;
 			}
-			dev_dbg(hw_priv->pdev, "Host resume.\n");
+			xr_printk(XRADIO_DBG_MSG, "BH: Host resume.\n");
 			atomic_set(&hw_priv->bh_suspend, XRADIO_BH_RESUMED);
 			wake_up(&hw_priv->bh_evt_wq);
 		}
 	} /* for (;;)*/
 
-	dev_err(hw_priv->pdev, "bh thread exiting\n");
+	xr_printk(XRADIO_DBG_ERROR, "BH: bh thread exiting\n");
 
 	return 0;
 }

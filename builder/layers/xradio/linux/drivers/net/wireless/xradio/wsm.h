@@ -30,13 +30,12 @@ struct xradio_common;
 /* 2   Mbps            ERP-DSSS */
 #define WSM_TRANSMIT_RATE_2		(1)
 
-/* 5.5 Mbps            ERP-CCK (ERP-PBCC not supported) */
-#define WSM_TRANSMIT_RATE_5		(2)
+/* 5.5 Mbps            ERP-CCK, ERP-PBCC (Not supported) */
+/* #define WSM_TRANSMIT_RATE_5		(2) */
 
-/* 11  Mbps            ERP-CCK (ERP-PBCC not supported) */
-#define WSM_TRANSMIT_RATE_11		(3)
+/* 11  Mbps            ERP-CCK, ERP-PBCC (Not supported) */
+/* #define WSM_TRANSMIT_RATE_11		(3) */
 
-/* Firmware will raise an exception and halt if mode 4 or 5 are used */ 
 /* 22  Mbps            ERP-PBCC (Not supported) */
 /* #define WSM_TRANSMIT_RATE_22		(4) */
 
@@ -1842,7 +1841,7 @@ struct wsm_operational_mode {
 };
 
 static const struct wsm_operational_mode defaultoperationalmode = {
-	.power_mode = wsm_power_mode_quiescent,
+	.power_mode = wsm_power_mode_active,
 	.disableMoreFlagUsage = true,
 };
 

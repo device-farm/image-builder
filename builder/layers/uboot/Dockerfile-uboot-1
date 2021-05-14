@@ -8,7 +8,12 @@ WORKDIR /build
 
 RUN git clone -c advice.detachedHead=false --depth 1 -b ${UBOOT_VERSION} ${UBOOT_REPO}
 
+COPY u-boot u-boot
+
 WORKDIR /build/u-boot
+
+COPY u-boot.patch .
+RUN cat u-boot.patch | patch -p1
 
 COPY uboot-defconfig .
 RUN cat uboot-defconfig >>configs/${UBOOT_DEFCONFIG}; rm uboot-defconfig

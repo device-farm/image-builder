@@ -52,6 +52,8 @@ int xradio_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	struct xradio_common *hw_priv = hw->priv;
 #endif
 
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
+
 	if (priv->mode != NL80211_IFTYPE_AP) {
 		return 0;
 	}
@@ -60,7 +62,7 @@ int xradio_sta_add(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	sta_priv->link_id = xradio_find_link_id(priv, sta->addr);
 	if (WARN_ON(!sta_priv->link_id)) {
 		/* Impossible error */
-		wiphy_debug(hw->wiphy, "No more link IDs available.\n");
+		ap_printk(XRADIO_DBG_MSG,"No more link IDs available.\n");
 		return -ENOENT;
 	}
 
@@ -99,8 +101,10 @@ int xradio_sta_remove(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	struct xradio_vif *priv = xrwl_get_vif_from_ieee80211(vif);
 	struct xradio_link_entry *entry;
 
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
+
 	if (priv->mode != NL80211_IFTYPE_AP || !sta_priv->link_id) {
-		wiphy_warn(hw->wiphy, "no station to remove\n");
+		ap_printk(XRADIO_DBG_MSG,"no station to remove\n");
 		return 0;
 	}
 
@@ -139,6 +143,7 @@ static void __xradio_sta_notify(struct xradio_vif *priv,
 	struct xradio_common *hw_priv = xrwl_vifpriv_to_hwpriv(priv);
 	u32 bit, prev;
 
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
 	/* Zero link id means "for all link IDs" */
 	if (link_id)
 		bit = BIT(link_id);
@@ -209,7 +214,8 @@ static int xradio_set_tim_impl(struct xradio_vif *priv, bool aid0_bit_set)
 		.count = 1,
 	};
 	u16 tim_offset, tim_length;
-	ap_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
+
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
 	ap_printk(XRADIO_DBG_MSG, "%s mcast: %s.\n", __func__, 
 	          aid0_bit_set ? "ena" : "dis");
 
@@ -357,7 +363,10 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 	struct xradio_common *hw_priv = dev->priv;
 	struct xradio_vif *priv = xrwl_get_vif_from_ieee80211(vif);
 
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
+
 	mutex_lock(&hw_priv->conf_mutex);
+
 	if (changed & BSS_CHANGED_BSSID) {
 		memcpy(priv->bssid, info->bssid, ETH_ALEN);
 		xradio_setup_mac_pvif(priv);
@@ -399,6 +408,42 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 		if (wsm_set_arp_ipv4_filter(hw_priv, &filter, priv->if_id))
 			WARN_ON(1);
 
+		if (filter.enable &&
+			(priv->join_status == XRADIO_JOIN_STATUS_STA)) {
+			/* Firmware requires that value for this 1-byte field must
+			 * be specified in units of 500us. Values above the 128ms
+			 * threshold are not supported. */
+			//if (info->dynamic_ps_timeout >= 0x80)
+			//	priv->powersave_mode.fastPsmIdlePeriod = 0xFF;
+			//else
+			//	priv->powersave_mode.fastPsmIdlePeriod = info->dynamic_ps_timeout << 1;
+
+			priv->powersave_mode.fastPsmIdlePeriod = 200;//when connected,the dev->conf.dynamic_ps_timeout value is 0
+			priv->powersave_mode.apPsmChangePeriod = 200; //100ms, add by yangfh
+			ap_printk(XRADIO_DBG_NIY, "[STA]fastPsmIdle=%d, apPsmChange=%d\n", 
+			          priv->powersave_mode.fastPsmIdlePeriod, 
+			          priv->powersave_mode.apPsmChangePeriod);
+
+			if (priv->setbssparams_done) {
+				int ret = 0;
+				struct wsm_set_pm pm = priv->powersave_mode;
+				if (priv->user_power_set_true)
+					priv->powersave_mode.pmMode = priv->user_pm_mode;
+				else if ((priv->power_set_true &&
+				         ((priv->powersave_mode.pmMode == WSM_PSM_ACTIVE) ||
+				         (priv->powersave_mode.pmMode == WSM_PSM_PS)))    ||
+				         !priv->power_set_true)
+					priv->powersave_mode.pmMode = WSM_PSM_FAST_PS;
+
+				ret = xradio_set_pm (priv, &priv->powersave_mode);
+				if(ret)
+					priv->powersave_mode = pm;
+			} else {
+				priv->powersave_mode.pmMode = WSM_PSM_FAST_PS;
+			}
+			priv->power_set_true = 0;
+			priv->user_power_set_true = 0;
+		}
 	}
 
 	if (changed & BSS_CHANGED_BEACON) {
@@ -489,17 +534,17 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 			if (is_combo > 1) {
 				hw_priv->vif0_throttle = XRWL_HOST_VIF0_11BG_THROTTLE;
 				hw_priv->vif1_throttle = XRWL_HOST_VIF1_11BG_THROTTLE;
-				ap_printk(XRADIO_DBG_WARN, "%sASSOC is_combo %d\n", 
+				ap_printk(XRADIO_DBG_NIY, "%sASSOC is_combo %d\n", 
 				         (priv->join_status == XRADIO_JOIN_STATUS_STA)?"[STA] ":"",
 				          hw_priv->vif0_throttle);
 			} else if ((priv->join_status == XRADIO_JOIN_STATUS_STA) && priv->htcap) {
 				hw_priv->vif0_throttle = XRWL_HOST_VIF0_11N_THROTTLE;
 				hw_priv->vif1_throttle = XRWL_HOST_VIF1_11N_THROTTLE;
-				ap_printk(XRADIO_DBG_WARN, "[STA] ASSOC HTCAP 11N %d\n",hw_priv->vif0_throttle);
+				ap_printk(XRADIO_DBG_NIY, "[STA] ASSOC HTCAP 11N %d\n",hw_priv->vif0_throttle);
 			} else {
 				hw_priv->vif0_throttle = XRWL_HOST_VIF0_11BG_THROTTLE;
 				hw_priv->vif1_throttle = XRWL_HOST_VIF1_11BG_THROTTLE;
-				ap_printk(XRADIO_DBG_WARN, "ASSOC not_combo 11BG %d\n",hw_priv->vif0_throttle);
+				ap_printk(XRADIO_DBG_NIY, "ASSOC not_combo 11BG %d\n",hw_priv->vif0_throttle);
 			}
 
 			if (sta) {
@@ -568,10 +613,14 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 			} else {
 				join_dtim_period_extend = priv->join_dtim_period;
 			}
-			WARN_ON(wsm_set_beacon_wakeup_period(hw_priv, join_dtim_period_extend, 0, priv->if_id));
+			WARN_ON(wsm_set_beacon_wakeup_period(hw_priv,
+				((priv->beacon_int * join_dtim_period_extend) > MAX_BEACON_SKIP_TIME_MS 
+				? 1 : join_dtim_period_extend) , 0, priv->if_id));
 }
 #else
-			WARN_ON(wsm_set_beacon_wakeup_period(hw_priv, priv->join_dtim_period, 0, priv->if_id));
+			WARN_ON(wsm_set_beacon_wakeup_period(hw_priv,
+				((priv->beacon_int * priv->join_dtim_period) > MAX_BEACON_SKIP_TIME_MS 
+				? 1 : priv->join_dtim_period) , 0, priv->if_id));
 #endif
 			if (priv->htcap) {
 				wsm_lock_tx(hw_priv);
@@ -580,7 +629,10 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 				                                  hw_priv->ba_tid_mask, priv->if_id));
 				wsm_unlock_tx(hw_priv);
 			}
-			
+			/*set ps active,avoid that when connecting process,the device sleeps,then can't receive pkts.*/
+			if (changed & BSS_CHANGED_ASSOC) 
+				priv->powersave_mode.pmMode = WSM_PSM_ACTIVE;
+			xradio_set_pm(priv, &priv->powersave_mode);
 			if (priv->vif->p2p) {
 				ap_printk(XRADIO_DBG_NIY, "[STA] Setting p2p powersave configuration.\n");
 				WARN_ON(wsm_set_p2p_ps_modeinfo(hw_priv, &priv->p2p_ps_modeinfo, priv->if_id));
@@ -623,10 +675,15 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 	}
 	if (changed & (BSS_CHANGED_ASSOC | BSS_CHANGED_ERP_CTS_PROT)) {
 		u32 prev_erp_info = priv->erp_info;
-		priv->erp_info = (priv->erp_info & ~WLAN_ERP_USE_PROTECTION) 
-						| (info->use_cts_prot ? WLAN_ERP_USE_PROTECTION : 0);
-		if (prev_erp_info != priv->erp_info)
-			queue_delayed_work(hw_priv->workqueue, &priv->set_cts_work, 0*HZ);
+		if (priv->join_status == XRADIO_JOIN_STATUS_AP) {
+			if (info->use_cts_prot)
+				priv->erp_info |= WLAN_ERP_USE_PROTECTION;
+			else if (!(prev_erp_info & WLAN_ERP_NON_ERP_PRESENT))
+				priv->erp_info &= ~WLAN_ERP_USE_PROTECTION;
+
+			if (prev_erp_info != priv->erp_info)
+				queue_delayed_work(hw_priv->workqueue, &priv->set_cts_work, 0*HZ);
+		}
 	}
 
 	if (changed & (BSS_CHANGED_ASSOC | BSS_CHANGED_ERP_SLOT)) {
@@ -695,14 +752,20 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 		//}
 #endif /* CONFIG_XRADIO_USE_EXTENSIONS */
 	}
-
-	if (changed & (BSS_CHANGED_PS | BSS_CHANGED_ASSOC)) {
-		if (!info->ps)
+	/*
+	 * in linux3.4 mac,the  enum ieee80211_bss_change variable doesn't have
+	 * BSS_CHANGED_PS and BSS_CHANGED_RETRY_LIMITS enum value.
+	 */
+#if 0
+	if (changed & BSS_CHANGED_PS) {
+		if (info->ps_enabled == false)
 			priv->powersave_mode.pmMode = WSM_PSM_ACTIVE;
+		else if (info->dynamic_ps_timeout <= 0)
+			priv->powersave_mode.pmMode = WSM_PSM_PS;
 		else
 			priv->powersave_mode.pmMode = WSM_PSM_FAST_PS;
-		
-		ap_printk(XRADIO_DBG_MSG, "[PowerSave] aid: %d, IsSTA: %s, Powersave: %s\n",
+
+		ap_printk(XRADIO_DBG_MSG, "[STA] Aid: %d, Joined: %s, Powersave: %s\n",
 		          priv->bss_params.aid,
 		          priv->join_status == XRADIO_JOIN_STATUS_STA ? "yes" : "no",
 		         (priv->powersave_mode.pmMode == WSM_PSM_ACTIVE ? "WSM_PSM_ACTIVE" :
@@ -713,21 +776,21 @@ void xradio_bss_info_changed(struct ieee80211_hw *dev,
 		/* Firmware requires that value for this 1-byte field must
 		 * be specified in units of 500us. Values above the 128ms
 		 * threshold are not supported. */
-		priv->powersave_mode.apPsmChangePeriod = 200;
-		priv->powersave_mode.minAutoPsPollPeriod = 0;
-
-		if (dev->conf.dynamic_ps_timeout >= 0x80)
+		if (info->dynamic_ps_timeout >= 0x80)
 			priv->powersave_mode.fastPsmIdlePeriod = 0xFF;
 		else
-			priv->powersave_mode.fastPsmIdlePeriod = dev->conf.dynamic_ps_timeout << 1;
-
-		ap_printk(XRADIO_DBG_NIY, "CHANGED_PS fastPsmIdle=%d, apPsmChange=%d\n", 
+			priv->powersave_mode.fastPsmIdlePeriod = info->dynamic_ps_timeout << 1;
+		ap_printk(XRADIO_DBG_NIY, "[STA]CHANGED_PS fastPsmIdle=%d, apPsmChange=%d\n", 
 		          priv->powersave_mode.fastPsmIdlePeriod, 
 		          priv->powersave_mode.apPsmChangePeriod);
 
-		xradio_set_pm(priv, &priv->powersave_mode);
+		if (priv->join_status == XRADIO_JOIN_STATUS_STA && priv->bss_params.aid &&
+			  priv->setbssparams_done && priv->filter4.enable)
+			xradio_set_pm(priv, &priv->powersave_mode);
+		else
+			priv->power_set_true = 1;
 	}
-#if 0
+
 	if (changed & BSS_CHANGED_RETRY_LIMITS) {
 		ap_printk(XRADIO_DBG_NIY, "Retry limits: %d (long), %d (short).\n", 
 		          info->retry_long, info->retry_short);
@@ -860,15 +923,10 @@ void xradio_multicast_stop_work(struct work_struct *work)
 	}
 }
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 void xradio_mcast_timeout(struct timer_list *t)
 {
 	struct xradio_vif *priv = from_timer(priv, t, mcast_timeout);
-#else
-void xradio_mcast_timeout(unsigned long arg)
-{
-	struct xradio_vif *priv = (struct xradio_vif *)arg;
-#endif
+
 	ap_printk(XRADIO_DBG_WARN, "Multicast delivery timeout.\n");
 	spin_lock_bh(&priv->ps_state_lock);
 	priv->tx_multicast = priv->aid0_bit_set && priv->buffered_multicasts;
@@ -888,6 +946,8 @@ int xradio_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 	 * sends ADDBA Response which is discarded in the driver as
 	 * FW generates the ADDBA Response on its own.*/
 	int ret;
+
+	ap_printk(XRADIO_DBG_OPS, "%s\n", __func__);
 
 	switch (params->action) {
 	case IEEE80211_AMPDU_RX_START:
@@ -1119,11 +1179,7 @@ static int xradio_upload_null(struct xradio_vif *priv)
 		.rate = 0xFF,
 	};
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 17))
 	frame.skb = ieee80211_nullfunc_get(priv->hw, priv->vif, false);
-#else
-	frame.skb = ieee80211_nullfunc_get(priv->hw, priv->vif);
-#endif
 	if (WARN_ON(!frame.skb))
 		return -ENOMEM;
 
@@ -1223,8 +1279,6 @@ static int xradio_start_ap(struct xradio_vif *priv)
 	};
 #endif
 
-	ap_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
-
 	if (priv->if_id)
 		start.mode |= WSM_FLAG_MAC_INSTANCE_1;
 	else
@@ -1305,7 +1359,7 @@ static int xradio_start_ap(struct xradio_vif *priv)
 	WARN_ON(wsm_set_operational_mode(hw_priv, &defaultoperationalmode, priv->if_id));
 	hw_priv->vif0_throttle = XRWL_HOST_VIF0_11BG_THROTTLE;
 	hw_priv->vif1_throttle = XRWL_HOST_VIF1_11BG_THROTTLE;
-	ap_printk(XRADIO_DBG_WARN, "vif%d, AP/GO mode THROTTLE=%d\n", priv->if_id,
+	ap_printk(XRADIO_DBG_NIY, "vif%d, AP/GO mode THROTTLE=%d\n", priv->if_id,
 	          priv->if_id==0?hw_priv->vif0_throttle:hw_priv->vif1_throttle);
 	return ret;
 }
@@ -1318,7 +1372,6 @@ static int xradio_update_beaconing(struct xradio_vif *priv)
 		.link_id = 0,
 		.reset_statistics = true,
 	};
-	ap_printk(XRADIO_DBG_TRC,"%s\n", __FUNCTION__);
 
 	if (priv->mode == NL80211_IFTYPE_AP) {
 		/* TODO: check if changed channel, band */

@@ -1178,7 +1178,7 @@ static int wsm_startup_indication(struct xradio_common *hw_priv,
 	hw_priv->wsm_caps.firmwareCap	= WSM_GET16(buf);
 	hw_priv->wsm_caps.firmwareType	= WSM_GET16(buf);
 	hw_priv->wsm_caps.firmwareApiVer	= WSM_GET16(buf);
-	hw_priv->wsm_caps.firmwareBuildNumber = WSM_GET16(buf);
+	hw_priv->wsm_caps.firmwareBuildNumber	= WSM_GET16(buf);
 	hw_priv->wsm_caps.firmwareVersion	= WSM_GET16(buf);
 	WSM_GET(buf, &hw_priv->wsm_caps.fw_label[0], WSM_FW_LABEL);
 	hw_priv->wsm_caps.fw_label[WSM_FW_LABEL+1] = 0; /* Do not trust FW too much. */
@@ -1189,22 +1189,30 @@ static int wsm_startup_indication(struct xradio_common *hw_priv,
 	if (WARN_ON(hw_priv->wsm_caps.firmwareType > 4))
 		return -EINVAL;
 
-	dev_info(hw_priv->pdev,
-		"   Input buffers: %d x %d bytes\n"
-		"   Hardware: %d.%d\n"
-		"   %s firmware ver: %d, build: %d,"
-		    " api: %d, cap: 0x%.4X\n",
-		hw_priv->wsm_caps.numInpChBufs,
-		hw_priv->wsm_caps.sizeInpChBuf,
+	xr_printk(XRADIO_DBG_ALWY, "hardware vers. %d.%d\n", 
 		hw_priv->wsm_caps.hardwareId,
-		hw_priv->wsm_caps.hardwareSubId,
-		fw_types[hw_priv->wsm_caps.firmwareType],
+		hw_priv->wsm_caps.hardwareSubId);
+	
+	xr_printk(XRADIO_DBG_ALWY, "firmware vers. %d (%s), build %d, api %d, cap 0x%.4X\n",
 		hw_priv->wsm_caps.firmwareVersion,
+		fw_types[hw_priv->wsm_caps.firmwareType],
 		hw_priv->wsm_caps.firmwareBuildNumber,
 		hw_priv->wsm_caps.firmwareApiVer,
 		hw_priv->wsm_caps.firmwareCap);
 	
-	dev_info(hw_priv->pdev, "Firmware Label:%s\n", &hw_priv->wsm_caps.fw_label[0]);
+	xr_printk(XRADIO_DBG_MSG, "input buffers: %d x %d bytes\n",
+		hw_priv->wsm_caps.numInpChBufs,
+		hw_priv->wsm_caps.sizeInpChBuf);
+	
+	xr_printk(XRADIO_DBG_MSG,"firmware label: %s\n", &hw_priv->wsm_caps.fw_label[0]);
+
+	#if defined(CONFIG_XRADIO_USE_EXTENSIONS)
+		xr_printk(XRADIO_DBG_ALWY,"Config USE_EXTENSIONS\n");
+	#endif
+		
+	#if defined(CONFIG_XRADIO_WAPI_SUPPORT)
+		xr_printk(XRADIO_DBG_ALWY,"Config WAPI_SUPPORT\n");
+	#endif
 
 	hw_priv->wsm_caps.firmwareReady = 1;
 
@@ -1367,7 +1375,7 @@ static int wsm_receive_indication(struct xradio_common *hw_priv,
 		}
 		priv = xrwl_hwpriv_to_vifpriv(hw_priv, rx.if_id);
 		if (!priv) {
-			dev_dbg(hw_priv->pdev, "got frame on a vif we don't have, dropped\n");
+			wsm_printk(XRADIO_DBG_MSG,"got frame on a vif we don't have, dropped\n");
 			return 0;
 		}
 		//remove wsm hdr of skb
@@ -1393,8 +1401,7 @@ static int wsm_receive_indication(struct xradio_common *hw_priv,
 		if (!rx.status && unlikely(ieee80211_is_deauth(hdr->frame_control))) {
 			if (priv->join_status == XRADIO_JOIN_STATUS_STA) {
 				/* Shedule unjoin work */
-				dev_dbg(hw_priv->pdev,
-					"Issue unjoin command (RX).\n");
+				wsm_printk(XRADIO_DBG_MSG,"Issue unjoin command (RX).\n");
 				wsm_lock_tx_async(hw_priv);
 				if (queue_work(hw_priv->workqueue,
 						&priv->unjoin_work) <= 0)
@@ -1426,7 +1433,7 @@ static int wsm_event_indication(struct xradio_common *hw_priv,
 	priv = xrwl_hwpriv_to_vifpriv(hw_priv, interface_link_id);
 
 	if (unlikely(!priv)) {
-		dev_warn(hw_priv->pdev, "Event: %d(%d) for removed "
+		wsm_printk(XRADIO_DBG_WARN,"Event: %d(%d) for removed "
 			   "interface, ignoring\n", __le32_to_cpu(WSM_GET32(buf)),
 			   __le32_to_cpu(WSM_GET32(buf)));
 		return 0;
@@ -1440,7 +1447,7 @@ static int wsm_event_indication(struct xradio_common *hw_priv,
 
 	event = kzalloc(sizeof(struct xradio_wsm_event), GFP_KERNEL);
 	if (event == NULL) {
-		dev_err(hw_priv->pdev, "xr_kzalloc failed!");
+		wsm_printk(XRADIO_DBG_ERROR,"kzalloc failed!");
 		return -EINVAL;
 	}
 
@@ -1448,7 +1455,7 @@ static int wsm_event_indication(struct xradio_common *hw_priv,
 	event->evt.eventData = __le32_to_cpu(WSM_GET32(buf));
 	event->if_id = interface_link_id;
 
-	dev_dbg(hw_priv->pdev, "Event: %d(%d)\n",
+	wsm_printk(XRADIO_DBG_MSG,"Event: %d(%d)\n",
 		event->evt.eventId, event->evt.eventData);
 
 	spin_lock(&hw_priv->event_queue_lock);
@@ -1773,7 +1780,7 @@ int wsm_cmd_send(struct xradio_common *hw_priv,
 		hw_priv->wsm_cmd.ptr = NULL;
 		spin_unlock(&hw_priv->wsm_cmd.lock);
 
-		dev_err(hw_priv->pdev, "***CMD timeout!>>> 0x%.4X (%d), buf_use=%d, bh_state=%d\n",
+		wsm_printk(XRADIO_DBG_ERROR,"CMD timeout!>>> 0x%.4X (%d), buf_use=%d, bh_state=%d\n",
 			   cmd, buf_len, hw_priv->hw_bufs_used, hw_priv->bh_error);
 		/* Race condition check to make sure _confirm is not called
 		 * after exit of _send */
@@ -1998,33 +2005,31 @@ int wsm_handle_exception(struct xradio_common *hw_priv, u8 *data, size_t len)
 	WSM_GET(&buf, fname, sizeof(fname));
 
 	if (reason < 4) {
-		dev_err(hw_priv->pdev, "Firmware exception: %s.\n",
+		wsm_printk(XRADIO_DBG_ERROR,"Firmware exception: %s.\n",
 		           reason_str[reason]);
 	} else {
-		dev_err(hw_priv->pdev, "Firmware assert at %.*s, line %d, reason=0x%x\n",
+		wsm_printk(XRADIO_DBG_ERROR,"Firmware assert at %.*s, line %d, reason=0x%x\n",
 			       sizeof(fname), fname, reg[1], reg[2]);
 	}
 
 	for (i = 0; i < 12; i += 4) {
-		dev_err(hw_priv->pdev, "Firmware:" \
+		wsm_printk(XRADIO_DBG_ERROR,"Firmware:" \
 		           "R%d: 0x%.8X, R%d: 0x%.8X, R%d: 0x%.8X, R%d: 0x%.8X,\n",
 		           i + 0, reg[i + 0], i + 1, reg[i + 1],
 		           i + 2, reg[i + 2], i + 3, reg[i + 3]);
 	}
-	dev_err(hw_priv->pdev, "Firmware:" \
+	wsm_printk(XRADIO_DBG_ERROR,"Firmware:" \
 	           "R12: 0x%.8X, SP: 0x%.8X, LR: 0x%.8X, PC: 0x%.8X,\n",
 	           reg[i + 0], reg[i + 1], reg[i + 2], reg[i + 3]);
 	i += 4;
-	dev_err(hw_priv->pdev, "Firmware:CPSR: 0x%.8X, SPSR: 0x%.8X\n",
+	wsm_printk(XRADIO_DBG_ERROR,"Firmware:CPSR: 0x%.8X, SPSR: 0x%.8X\n",
 	           reg[i + 0], reg[i + 1]);
 	
 	return 0;
 
 underflow:
-	dev_err(hw_priv->pdev, "Firmware exception.\n");
-#if defined(CONFIG_XRADIO_DEBUG)
+	wsm_printk(XRADIO_DBG_ERROR,"Firmware exception.\n");
 	print_hex_dump_bytes("Exception: ", DUMP_PREFIX_NONE, data, len);
-#endif /* CONFIG_XRADIO_DEBUG */
 	return -EINVAL;
 }
 
@@ -2083,8 +2088,10 @@ int wsm_handle_rx(struct xradio_common *hw_priv, int id,
 {
 	int ret = 0;
 	struct wsm_buf wsm_buf;
+#ifdef MCAST_FWDING
 	struct xradio_vif *priv = NULL;
 	int i = 0;
+#endif/* MCAST_FWDING */
 	int interface_link_id = (id >> 6) & 0x0F;
 #ifdef ROAM_OFFLOAD
 #if 0
@@ -2793,33 +2800,33 @@ int wsm_get_tx(struct xradio_common *hw_priv, u8 **data,
 				if_pending = 0;
 				continue;
 			}
-/*
-#ifdef ROC_DEBUG
-			{
-				struct ieee80211_hdr *hdr =
-				(struct ieee80211_hdr *)
-					&((u8 *)wsm)[txpriv->offset];
 
-				wsm_printk(XRADIO_DBG_ERROR, "QGET-1 %x, off_id %d,"
-					       " if_id %d\n",
-						hdr->frame_control,
-						txpriv->offchannel_if_id,
-						priv->if_id);
-			}
-#else
-			{
-				struct ieee80211_hdr *hdr __maybe_unused =
-				(struct ieee80211_hdr *)
-					&((u8 *)wsm)[txpriv->offset];
+// #ifdef ROC_DEBUG
+// 			{
+// 				struct ieee80211_hdr *hdr =
+// 				(struct ieee80211_hdr *)
+// 					&((u8 *)wsm)[txpriv->offset];
+// 
+// 				wsm_printk(XRADIO_DBG_ERROR, "QGET-1 %x, off_id %d,"
+// 					       " if_id %d\n",
+// 						hdr->frame_control,
+// 						txpriv->offchannel_if_id,
+// 						priv->if_id);
+// 			}
+// #else
+// 			{
+// 				struct ieee80211_hdr *hdr =
+// 				(struct ieee80211_hdr *)
+// 					&((u8 *)wsm)[txpriv->offset];
+// 
+// 				wsm_printk(XRADIO_DBG_ERROR, "QGET-1 %x, off_id %d,"
+// 						   " if_id %d\n",
+// 						hdr->frame_control,
+// 						txpriv->raw_if_id,
+// 						priv->if_id);
+// 			}
+// #endif
 
-				wsm_printk(XRADIO_DBG_ERROR, "QGET-1 %x, off_id %d,"
-						   " if_id %d\n",
-						hdr->frame_control,
-						txpriv->offchannel_if_id,
-						priv->if_id);
-			}
-#endif
-*/
 			if (wsm_handle_tx_data(priv, wsm,
 					tx_info, txpriv, queue)) {
 				spin_unlock(&priv->vif_lock);
@@ -2837,33 +2844,33 @@ int wsm_get_tx(struct xradio_common *hw_priv, u8 **data,
 					WSM_TX_IF_ID(priv->if_id));
 
 			*vif_selected = priv->if_id;
-/*
-#ifdef ROC_DEBUG
-			{
-				struct ieee80211_hdr *hdr =
-				(struct ieee80211_hdr *)
-					&((u8 *)wsm)[txpriv->offset];
+// #ifdef ROC_DEBUG
+// /* remand the roc debug. */
+// 			{
+// 				struct ieee80211_hdr *hdr =
+// 				(struct ieee80211_hdr *)
+// 					&((u8 *)wsm)[txpriv->offset];
+// 
+// 				wsm_printk(XRADIO_DBG_ERROR, "QGET-2 %x, off_id %d,"
+// 					       " if_id %d\n",
+// 						hdr->frame_control,
+// 						txpriv->offchannel_if_id,
+// 						priv->if_id);
+// 			}
+// #else
+// 			{
+// 				struct ieee80211_hdr *hdr =
+// 				(struct ieee80211_hdr *)
+// 					&((u8 *)wsm)[txpriv->offset];
+// 
+// 				wsm_printk(XRADIO_DBG_ERROR, "QGET-2 %x, off_id %d,"
+// 						   " if_id %d\n",
+// 						hdr->frame_control,
+// 						txpriv->raw_if_id,
+// 						priv->if_id);
+// 			}
+// #endif
 
-				wsm_printk(XRADIO_DBG_ERROR, "QGET-2 %x, off_id %d,"
-					       " if_id %d\n",
-						hdr->frame_control,
-						txpriv->offchannel_if_id,
-						priv->if_id);
-			}
-#else
-			{
-				struct ieee80211_hdr *hdr __maybe_unused =
-				(struct ieee80211_hdr *)
-					&((u8 *)wsm)[txpriv->offset];
-
-				wsm_printk(XRADIO_DBG_ERROR, "QGET-2 %x, off_id %d,"
-						   " if_id %d\n",
-						hdr->frame_control,
-						txpriv->offchannel_if_id,
-						priv->if_id);
-			}
-#endif
-*/
 			priv->pspoll_mask &= ~BIT(txpriv->raw_link_id);
 
 			*data = (u8 *)wsm;

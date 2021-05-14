@@ -13,10 +13,6 @@
 #ifndef PM_H_INCLUDED
 #define PM_H_INCLUDED
 
-#ifdef CONFIG_WAKELOCK
-#include <linux/wakelock.h>
-#endif
-
 /* ******************************************************************** */
 /* mac80211 API */
 
@@ -26,14 +22,10 @@
 #define XRADIO_WAKE_LOCK   "xradio_wlan"
 
 /* extern */   struct xradio_common; 
- /* private */ struct xradio_suspend_state;
+/* private */  struct xradio_suspend_state;
 
 struct xradio_pm_state {
-#ifdef CONFIG_WAKELOCK
-	struct wake_lock wakelock;
-#else
 	struct timer_list stay_awake;
-#endif
 	struct platform_device *pm_dev;
 	spinlock_t lock;
 	unsigned long expires_save;
@@ -50,7 +42,7 @@ enum suspend_state {
 	XRADIO_DISCONNECT_SUSP,
 	XRADIO_POWEROFF_SUSP
 };
-#endif
+#endif /* CONFIG_XRADIO_SUSPEND_POWER_OFF */
 int xradio_pm_init(struct xradio_pm_state *pm, struct xradio_common *priv);
 void xradio_pm_deinit(struct xradio_pm_state *pm);
 void xradio_pm_stay_awake(struct xradio_pm_state *pm, unsigned long tmo);

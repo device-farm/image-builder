@@ -8,12 +8,15 @@
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
  */
+
+#include <linux/version.h>	/* MRK 5.4 */
+
 #ifndef STA_H_INCLUDED
 #define STA_H_INCLUDED
 
 
 #ifdef XRADIO_USE_LONG_KEEP_ALIVE_PERIOD
-#define XRADIO_KEEP_ALIVE_PERIOD         (10)
+#define XRADIO_KEEP_ALIVE_PERIOD         (28)
 #else
 /*For Samsung, it is defined as 4*/
 #define XRADIO_KEEP_ALIVE_PERIOD         (4)
@@ -64,11 +67,11 @@ int xradio_remain_on_channel(struct ieee80211_hw *hw,
 			     struct ieee80211_vif *vif,
                              struct ieee80211_channel *chan,
                              int duration, enum ieee80211_roc_type type);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw,
-				    struct ieee80211_vif *vif);
-#else
+/* MRK 5.4 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
 int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw);
+#else
+int xradio_cancel_remain_on_channel(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
 #endif
 int xradio_set_arpreply(struct ieee80211_hw *hw, struct ieee80211_vif *vif);
 u64 xradio_prepare_multicast(struct ieee80211_hw *hw,
@@ -113,11 +116,7 @@ int xradio_enable_listening(struct xradio_vif *priv, struct ieee80211_channel *c
 int xradio_disable_listening(struct xradio_vif *priv);
 int xradio_set_uapsd_param(struct xradio_vif *priv, const struct wsm_edca_params *arg);
 void xradio_ba_work(struct work_struct *work);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 void xradio_ba_timer(struct timer_list *t);
-#else
-void xradio_ba_timer(unsigned long arg);
-#endif
 const u8 *xradio_get_ie(u8 *start, size_t len, u8 ie);
 int xradio_vif_setup(struct xradio_vif *priv);
 int xradio_setup_mac_pvif(struct xradio_vif *priv);

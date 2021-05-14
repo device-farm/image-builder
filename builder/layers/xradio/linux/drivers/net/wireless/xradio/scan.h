@@ -68,4 +68,4 @@ void xradio_scan_complete_cb(struct xradio_common *priv,
 /* Raw probe requests TX workaround					*/
 void xradio_probe_work(struct work_struct *work);
 
-#endif
+#endif /* SCAN_H_INCLUDED */

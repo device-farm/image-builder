@@ -9,6 +9,7 @@
  * published by the Free Software Foundation.
  */
 
+
 #include <linux/firmware.h>
 #include <net/cfg80211.h>
 #include <linux/of_net.h>
@@ -290,8 +291,7 @@ struct ieee80211_hw *xradio_init_common(size_t hw_priv_data_len)
 	hw->wiphy->flags |= WIPHY_FLAG_AP_UAPSD;
 #endif /* CONFIG_XRADIO_USE_EXTENSIONS */
 	/* fix the problem that driver can not set pro-resp template frame to fw */
-	hw->wiphy->flags |= WIPHY_FLAG_AP_PROBE_RESP_OFFLOAD |
-						WIPHY_FLAG_PS_ON_BY_DEFAULT;
+	hw->wiphy->flags |= WIPHY_FLAG_AP_PROBE_RESP_OFFLOAD;
 
 #if defined(CONFIG_XRADIO_DISABLE_BEACON_HINTS)
 	hw->wiphy->flags |= WIPHY_FLAG_DISABLE_BEACON_HINTS;
@@ -337,8 +337,14 @@ struct ieee80211_hw *xradio_init_common(size_t hw_priv_data_len)
 	mutex_init(&hw_priv->wsm_oper_lock);
 	atomic_set(&hw_priv->tx_lock, 0);
 	sema_init(&hw_priv->tx_lock_sem, 1);
-
 	hw_priv->workqueue = create_singlethread_workqueue(XRADIO_WORKQUEUE);
+
+	/*  MRK 5.2 */
+	if (!hw_priv->workqueue) {
+		ieee80211_free_hw(hw);
+		return NULL;
+	}
+
 	sema_init(&hw_priv->scan.lock, 1);
 	sema_init(&hw_priv->scan.status_lock,1);
 	INIT_WORK(&hw_priv->scan.work, xradio_scan_work);
@@ -357,15 +363,10 @@ struct ieee80211_hw *xradio_init_common(size_t hw_priv_data_len)
 	INIT_WORK(&hw_priv->event_handler, xradio_event_handler);
 	INIT_WORK(&hw_priv->ba_work, xradio_ba_work);
 	spin_lock_init(&hw_priv->ba_lock);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 15, 0))
 	timer_setup(&hw_priv->ba_timer, xradio_ba_timer, 0);
-#else
-	init_timer(&hw_priv->ba_timer);
-	hw_priv->ba_timer.data = (unsigned long)hw_priv;
-	hw_priv->ba_timer.function = xradio_ba_timer;
-#endif
+
 	if (unlikely(xradio_queue_stats_init(&hw_priv->tx_queue_stats,
-			WLAN_LINK_ID_MAX,sizeof(int[WLAN_LINK_ID_MAX]),xradio_skb_dtor, hw_priv))) {
+			WLAN_LINK_ID_MAX,xradio_skb_dtor, hw_priv))) {
 		ieee80211_free_hw(hw);
 		return NULL;
 	}
@@ -497,6 +498,7 @@ int xradio_core_init(struct sdio_func* func)
 	int err = -ENOMEM;
 	u16 ctrl_reg;
 	int if_id;
+	u8 b;		/* MRK 5.5a */
 	struct ieee80211_hw *dev;
 	struct xradio_common *hw_priv;
 	unsigned char randomaddr[ETH_ALEN];
@@ -522,30 +524,31 @@ int xradio_core_init(struct sdio_func* func)
 		eth_random_addr(randomaddr);
 		addr = randomaddr;
 	}
-	memcpy(hw_priv->addresses[0].addr, addr, ETH_ALEN);
-	memcpy(hw_priv->addresses[1].addr, addr, ETH_ALEN);
-	hw_priv->addresses[1].addr[5] += 0x01;
+	for (b = 0; b < XRWL_MAX_VIFS; b++) {				/* MRK 5.5a */
+		memcpy(hw_priv->addresses[b].addr, addr, ETH_ALEN);
+		hw_priv->addresses[b].addr[5] += b;
+	}
 
 	/*init pm and wakelock. */
 #ifdef CONFIG_PM
 	err = xradio_pm_init(&hw_priv->pm_state, hw_priv);
 	if (err) {
 		dev_dbg(hw_priv->pdev, "xradio_pm_init failed(%d).\n", err);
-		goto err1;
+		goto err2;
 	}
-#endif
+#endif /* CONFIG_PM */
 	/* Register bh thread*/
 	err = xradio_register_bh(hw_priv);
 	if (err) {
 		dev_dbg(hw_priv->pdev, "xradio_register_bh failed(%d).\n", err);
-		goto err2;
+		goto err3;
 	}
 
 	/* Load firmware and register Interrupt Handler */
 	err = xradio_load_firmware(hw_priv);
 	if (err) {
 		dev_dbg(hw_priv->pdev, "xradio_load_firmware failed(%d).\n", err);
-		goto err3;
+		goto err4;
 	}
 
 	/* Set sdio blocksize. */
@@ -561,7 +564,7 @@ int xradio_core_init(struct sdio_func* func)
 		/*       in QUEUE mode properly.           */
 		dev_dbg(hw_priv->pdev, "Firmware Startup Timeout!\n");
 		err = -ETIMEDOUT;
-		goto err4;
+		goto err5;
 	}
 	dev_dbg(hw_priv->pdev, "Firmware Startup Done.\n");
 
@@ -583,18 +586,19 @@ int xradio_core_init(struct sdio_func* func)
 	err = xradio_register_common(dev);
 	if (err) {
 		dev_dbg(hw_priv->pdev, "xradio_register_common failed(%d)!\n", err);
-		goto err4;
+		goto err5;
 	}
 
 	return err;
 
-err4:
+err5:
 	xradio_dev_deinit(hw_priv);
-err3:
+err4:
 	xradio_unregister_bh(hw_priv);
-err2:
+err3:
 	xradio_pm_deinit(&hw_priv->pm_state);
-err1:
+err2:
+/* err1: 	MRK: unused label*/
 	xradio_free_common(dev);
 	return err;
 }

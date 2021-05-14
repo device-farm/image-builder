@@ -49,16 +49,13 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
                    struct ieee80211_vif *vif, struct ieee80211_sta *sta,
                    struct ieee80211_key_conf *key)
 {
-#ifdef XRADIO_DISABLE_HW_CRYPTO
-	wiphy_info(dev->wiphy, "hw crypto is disabled, ignoring key request\n");
-	return -EOPNOTSUPP;
-#else
 	int ret = -EOPNOTSUPP;
 	struct xradio_common *hw_priv = dev->priv;
 	struct xradio_vif *priv = xrwl_get_vif_from_ieee80211(vif);
 
-	wiphy_dbg(dev->wiphy, "vif %d: set_key cmd %d\n", priv->if_id, (int) cmd);
-	
+	sta_printk(XRADIO_DBG_OPS, "%s\n", __func__);
+	sta_printk(XRADIO_DBG_MSG, "vif %d: set_key cmd %d\n", priv->if_id, (int) cmd);
+
 	mutex_lock(&hw_priv->conf_mutex);
 
 	if (cmd == SET_KEY) {
@@ -68,7 +65,7 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 		struct wsm_add_key *wsm_key = &hw_priv->keys[idx];
 
 		if (idx < 0) {
-			wiphy_err(dev->wiphy, "xradio_alloc_key failed!\n");
+			sta_printk(XRADIO_DBG_ERROR, "xradio_alloc_key failed!\n");
 			ret = -EINVAL;
 			goto finally;
 		}
@@ -85,7 +82,7 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 		case WLAN_CIPHER_SUITE_WEP104:
 			if (key->keylen > 16) {
 				xradio_free_key(hw_priv, idx);
-				wiphy_err(dev->wiphy, "keylen too long=%d!\n", key->keylen);
+				sta_printk(XRADIO_DBG_ERROR, "keylen too long=%d!\n", key->keylen);
 				ret = -EINVAL;
 				goto finally;
 			}
@@ -125,7 +122,7 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 				wsm_key->type = WSM_KEY_TYPE_AES_PAIRWISE;
 				memcpy(wsm_key->aesPairwiseKey.peerAddress, peer_addr, ETH_ALEN);
 				memcpy(wsm_key->aesPairwiseKey.aesKeyData, &key->key[0], 16);
-				wiphy_debug(dev->wiphy, "CCMP_PAIRWISE keylen=%d!\n",
+				sta_printk(XRADIO_DBG_MSG, "CCMP_PAIRWISE keylen=%d!\n",
 						key->keylen);
 			} else {
 				wsm_key->type = WSM_KEY_TYPE_AES_GROUP;
@@ -156,7 +153,7 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 			break;
 #endif /* CONFIG_XRADIO_WAPI_SUPPORT */
 		default:
-			wiphy_err(dev->wiphy, "key->cipher unknown(%d)!\n", key->cipher);
+			sta_printk(XRADIO_DBG_ERROR, "key->cipher unknown(%d)!\n", key->cipher);
 			xradio_free_key(hw_priv, idx);
 			ret = -EOPNOTSUPP;
 			goto finally;
@@ -183,11 +180,10 @@ int xradio_set_key(struct ieee80211_hw *dev, enum set_key_cmd cmd,
 		xradio_free_key(hw_priv, wsm_key.entryIndex);
 		ret = wsm_remove_key(hw_priv, &wsm_key, priv->if_id);
 	} else {
-		wiphy_err(dev->wiphy, "Unsupported command\n");
+		sta_printk(XRADIO_DBG_ERROR, "Unsupported command\n");
 	}
 
 finally:
 	mutex_unlock(&hw_priv->conf_mutex);
 	return ret;
-#endif // XRADIO_DISABLE_HW_CRYPTO
 }
