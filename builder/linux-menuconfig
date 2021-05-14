@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-DEFCONFIG_PATH=$(readlink --canonicalize $1)
+DEFCONFIG_PATH=$1
 LINUX_DIR=$2
 
 if [ -z "$DEFCONFIG_PATH" -o -z "$LINUX_DIR" ]
@@ -9,6 +9,8 @@ then
     echo "Use: $(basename $0) <defconfig-fragment-path> <linux-source-dir>"
     exit 1
 fi
+
+DEFCONFIG_PATH=$(readlink --canonicalize $DEFCONFIG_PATH)
 
 echo "DEFCONFIG_PATH=$DEFCONFIG_PATH"
 echo "LINUX_DIR=$LINUX_DIR"
