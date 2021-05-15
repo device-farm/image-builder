@@ -1,7 +1,0 @@
-WORKDIR /build/linux/drivers/net/wireless
-
-RUN echo 'obj-$(CONFIG_XRADIO) += xradio/' >>Makefile
-RUN echo 'source "drivers/net/wireless/xradio/Kconfig"' >>Kconfig
-
-WORKDIR /build/linux
-
