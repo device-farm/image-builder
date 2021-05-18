@@ -1,6 +1,0 @@
-#!/bin/sh
-set -e
-
-DEVICE=/build/device
-
-. ./install-device

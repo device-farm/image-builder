@@ -1,0 +1,35 @@
+#!/bin/sh
+set -e
+
+if [ -z "$INSTALL_DEVICE" ]
+then
+    echo "Install device needs to be specified"
+    exit 1
+fi
+
+INSTALL_DEVICE=/build/host-dev/$INSTALL_DEVICE
+
+echo "> Creating partition table..."
+. ./install-device
+
+echo "> Creating file systems..."
+. ./install-mkfs
+
+echo "> Mounting file systems..."
+MOUNT=/build/mount
+mkdir $MOUNT
+mount ${INSTALL_DEVICE}p2 $MOUNT
+mkdir $MOUNT/boot
+mount ${INSTALL_DEVICE}p1 $MOUNT/boot
+mkdir $MOUNT/data
+mount ${INSTALL_DEVICE}p3 $MOUNT/data
+
+echo "> Installing files..."
+. ./install-dto
+. ./install-mount
+
+echo "> Unmounting file systems..."
+umount $MOUNT/boot
+umount $MOUNT/data
+umount $MOUNT
+

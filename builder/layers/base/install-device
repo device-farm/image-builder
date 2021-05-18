@@ -1,9 +1,7 @@
 BOOT_SIZE_MB=${BOOT_SIZE_MB:-50}
 ROOT_SIZE_MB=${ROOT_SIZE_MB:-500}
 
-echo "> Creating partition table..."
-
-sfdisk --wipe always $DEVICE <<EOT
+sfdisk --wipe always $INSTALL_DEVICE <<EOT
 1M,${BOOT_SIZE_MB}M
 ,${ROOT_SIZE_MB}M
 ,200M

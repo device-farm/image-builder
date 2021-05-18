@@ -1,2 +1,2 @@
-sfdisk --part-type $DEVICE 1 0xC
+sfdisk --part-type $INSTALL_DEVICE 1 0xC
 

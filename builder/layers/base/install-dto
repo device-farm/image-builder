@@ -1,5 +1,3 @@
-echo "> Installing device tree overlays..."
-
 function apply_dts() {
 
     local DTO_DIR=$1

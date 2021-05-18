@@ -1,5 +1,3 @@
-echo "> Copying root system..."
-
 cp -r copy-root/* $MOUNT
 cp -r custom-root/* $MOUNT
 

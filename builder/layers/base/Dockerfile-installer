@@ -15,4 +15,5 @@ COPY --from=uboot-stage /build/boot.scr copy-root/boot/boot.scr
 COPY --from=uboot-stage /build/u-boot/*.bin u-boot/
 COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
 
+COPY install ./
 COPY install-* ./
