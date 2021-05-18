@@ -6,6 +6,6 @@ function build() {
 }
 
 #build defa/rpi-2-b rpi-2-b dropbear avahi
-build defa/orangepi-zero orangepi-zero dropbear avahi defa
+build defa/orangepi-zero orangepi-zero dropbear avahi ./device-farm
 #build defa/nanopi-duo nanopi-duo dropbear avahi
 

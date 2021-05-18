@@ -4,7 +4,6 @@
 
 ### image-builder
 - install kernel modules to fs
-- external layers
 
 ### device.farm
 - finish defa layer
