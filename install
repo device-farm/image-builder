@@ -2,8 +2,9 @@
 set -e
 
 #DOCKER_IMAGE=defa/rpi-2-b
-DOCKER_IMAGE=defa/orangepi-zero
+#DOCKER_IMAGE=defa/orangepi-zero
 #DOCKER_IMAGE=defa/nanopi-duo
+DOCKER_IMAGE=defa/qemu_x86_64
 
 docker run \
     --rm \
