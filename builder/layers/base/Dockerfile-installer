@@ -4,16 +4,11 @@ RUN apk add sfdisk e2fsprogs dtc
 
 WORKDIR /build
 
-ARG LINUX_DT_NAME
-
 COPY --from=root-stage / copy-root/
 COPY root copy-root/
-COPY dto dto
-COPY --from=kernel-stage /build/linux/arch/arm/boot/zImage copy-root/boot/zImage
-COPY --from=kernel-stage /build/linux/arch/arm/boot/dts/${LINUX_DT_NAME}.dtb linux.dtb
-COPY --from=uboot-stage /build/boot.scr copy-root/boot/boot.scr
-COPY --from=uboot-stage /build/u-boot/*.bin u-boot/
-COPY --from=uboot-stage /build/u-boot/*.dtb u-boot/
 
 COPY install ./
 COPY install-* ./
+
+ARG LINUX_ARCH
+

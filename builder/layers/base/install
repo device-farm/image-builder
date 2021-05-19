@@ -25,7 +25,6 @@ mkdir $MOUNT/data
 mount ${INSTALL_DEVICE}p3 $MOUNT/data
 
 echo "> Installing files..."
-. ./install-dto
 . ./install-mount
 
 echo "> Unmounting file systems..."

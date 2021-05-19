@@ -3,6 +3,9 @@ FROM cc-stage AS kernel-stage
 ARG LINUX_DEFCONFIG
 ARG LINUX_REPO
 ARG LINUX_VERSION
+ARG LINUX_ARCH
+
+ENV LINUX_ARCH=${LINUX_ARCH}
 
 WORKDIR /build
 RUN git clone -c advice.detachedHead=false --depth 1 -b ${LINUX_VERSION} ${LINUX_REPO}
@@ -15,8 +18,8 @@ COPY linux.patch .
 RUN cat linux.patch | patch -p1
 
 COPY linux-defconfig .
-RUN cat linux-defconfig >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
+RUN cat linux-defconfig >>arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
 
 COPY firmware /build/firmware
-RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f -printf '%P ')\"" >>arch/${ARCH}/configs/${LINUX_DEFCONFIG}
+RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f -printf '%P ')\"" >>arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG}
 

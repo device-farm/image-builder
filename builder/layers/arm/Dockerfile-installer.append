@@ -1,0 +1,6 @@
+ARG LINUX_DT_NAME
+
+COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/dts/${LINUX_DT_NAME}.dtb linux.dtb
+
+COPY dto dto
+

@@ -1,0 +1,6 @@
+COPY --from=boot-stage /build/boot.scr copy-root/boot/boot.scr
+COPY --from=boot-stage /build/u-boot/*.bin u-boot/
+COPY --from=boot-stage /build/u-boot/*.dtb u-boot/
+
+COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/zImage copy-root/boot/zImage
+

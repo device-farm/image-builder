@@ -1,4 +1,4 @@
-FROM cc-stage AS uboot-stage
+FROM cc-stage AS boot-stage
 
 ARG UBOOT_DEFCONFIG
 ARG UBOOT_REPO

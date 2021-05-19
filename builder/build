@@ -76,7 +76,7 @@ do
     applyLayer $LAYER
 done
 
-rm $DOCKER_CTX/layer-deps
+rm -f $DOCKER_CTX/layer-deps
 
 date --iso-8601=seconds >>$DOCKER_CTX/_BUILD_DATE
 
@@ -88,7 +88,7 @@ do
     addVar "$KEY" "$VALUE"
 done
 
-for FRAGMENT in top cc uboot kernel root installer
+for FRAGMENT in top cc boot kernel root installer
 do
         cat >>$DOCKER_CTX/Dockerfile <<EOF
 
