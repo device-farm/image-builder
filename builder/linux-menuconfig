@@ -15,9 +15,12 @@ DEFCONFIG_PATH=$(readlink --canonicalize $DEFCONFIG_PATH)
 echo "DEFCONFIG_PATH=$DEFCONFIG_PATH"
 echo "LINUX_DIR=$LINUX_DIR"
 
-export ARCH=arm
-export CROSS_COMPILE=arm-none-eabi-
-export DEFCONFIG=multi_v7_defconfig
+#export LINUX_ARCH=arm
+#export CROSS_COMPILE=arm-none-eabi-
+#export DEFCONFIG=multi_v7_defconfig
+
+export LINUX_ARCH=x86
+export DEFCONFIG=x86_64_defconfig
 
 cd $LINUX_DIR
 
@@ -25,8 +28,8 @@ make defconfig
 make savedefconfig
 cp defconfig defconfig-clean
 
-cat arch/$ARCH/configs/$DEFCONFIG >arch/$ARCH/configs/tmp_defconfig
-cat $DEFCONFIG_PATH >>arch/$ARCH/configs/tmp_defconfig
+cat arch/$LINUX_ARCH/configs/$DEFCONFIG >arch/$LINUX_ARCH/configs/tmp_defconfig
+cat $DEFCONFIG_PATH >>arch/$LINUX_ARCH/configs/tmp_defconfig
 make tmp_defconfig
 make menuconfig
 make savedefconfig
