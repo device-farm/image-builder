@@ -1,7 +1,7 @@
 if [ ! -z "$CONFIG_SSH_AUTHORIZED_KEYS" ]
 then
     echo "> Configuring SSH authorized keys"    
-    mkdir -p $MOUNT/.ssh
-    echo $CONFIG_SSH_AUTHORIZED_KEYS | base64 -d >$MOUNT/.ssh/authorized_keys
+    mkdir -p $MOUNT/root/.ssh
+    echo $CONFIG_SSH_AUTHORIZED_KEYS | base64 -d >$MOUNT/root/.ssh/authorized_keys
 fi
 
