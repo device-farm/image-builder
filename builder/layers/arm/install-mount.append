@@ -1,3 +1,5 @@
+echo "> Installing device tree..."
+
 function apply_dts() {
 
     local DTO_DIR=$1

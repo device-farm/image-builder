@@ -1,0 +1,16 @@
+if [ ! -z "$CONFIG_WIFI_SSID" ]
+then
+
+CONFIG_WIFI_SSID=$(echo $CONFIG_WIFI_SSID | base64 -d)
+CONFIG_WIFI_PASSWORD=$(echo $CONFIG_WIFI_PASSWORD | base64 -d)
+
+echo "> Configuring WiFi $CONFIG_WIFI_SSID"
+cat <<EOT >$MOUNT/etc/wpa_supplicant/wpa_supplicant.conf
+ctrl_interface=/var/run/wpa_supplicant
+ap_scan=1
+EOT
+
+wpa_passphrase "$CONFIG_WIFI_SSID" "$CONFIG_WIFI_PASSWORD" >>$MOUNT/etc/wpa_supplicant/wpa_supplicant.conf
+
+fi
+

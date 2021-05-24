@@ -4,3 +4,10 @@ if [ ! -z "$(ls -A1 custom-root)" ]
 then
     cp -r custom-root/* $MOUNT   
 fi
+
+if [ ! -z "$CONFIG_HOSTNAME" ]
+then
+    echo "> Configuring hostname $CONFIG_HOSTNAME"
+    echo $CONFIG_HOSTNAME >$MOUNT/etc/hostname
+fi
+
