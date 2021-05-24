@@ -4,3 +4,5 @@ COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/dts/${LINUX_DT_NAM
 
 COPY dto dto
 
+RUN mkdir custom-dto
+

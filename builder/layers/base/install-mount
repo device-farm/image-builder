@@ -1,3 +1,6 @@
-cp -r copy-root/* $MOUNT
-cp -r custom-root/* $MOUNT
+cp -r root/* $MOUNT
 
+if [ ! -z "$(ls -A1 custom-root)" ]
+then
+    cp -r custom-root/* $MOUNT   
+fi

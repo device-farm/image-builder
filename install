@@ -2,21 +2,20 @@
 set -e
 
 #DOCKER_IMAGE=defa/rpi-2-b
-#DOCKER_IMAGE=defa/orangepi-zero
+DOCKER_IMAGE=defa/orangepi-zero
 #DOCKER_IMAGE=defa/nanopi-duo
-DOCKER_IMAGE=defa/qemu_x86_64
+#DOCKER_IMAGE=defa/qemu_x86_64
 
 docker run \
     --rm \
     -it \
-    -e INSTALL_DEVICE=mmcblk0 \
-    -v /dev:/build/host-dev \
+    -e INSTALL_DEVICE=/dev/mmcblk0 \
+    -v /dev:/build/host/dev \
     -v $(pwd)/custom-root:/build/custom-root \
     -v $(pwd)/custom-dto:/build/custom-dto \
     --privileged \
     --security-opt apparmor=unconfined \
-    $DOCKER_IMAGE \
-    /build/install
+    $DOCKER_IMAGE
 
 sync
 echo "> Done."

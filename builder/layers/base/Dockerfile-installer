@@ -4,11 +4,15 @@ RUN apk add sfdisk e2fsprogs dtc
 
 WORKDIR /build
 
-COPY --from=root-stage / copy-root/
-COPY root copy-root/
+COPY --from=root-stage / root/
+COPY root root/
+
+RUN mkdir custom-root
 
 COPY install ./
 COPY install-* ./
 
 ARG LINUX_ARCH
+
+CMD ./install
 
