@@ -14,7 +14,6 @@ docker run \
     -v $(pwd)/custom-root:/build/custom-root \
     -v $(pwd)/custom-dto:/build/custom-dto \
     --privileged \
-    --security-opt apparmor=unconfined \
     $DOCKER_IMAGE
 
 sync
