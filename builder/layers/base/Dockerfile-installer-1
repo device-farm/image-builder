@@ -1,0 +1,4 @@
+FROM alpine:latest AS installer-stage
+
+RUN apk add sfdisk e2fsprogs dtc
+

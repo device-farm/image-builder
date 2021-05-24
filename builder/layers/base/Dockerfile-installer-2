@@ -1,7 +1,3 @@
-FROM alpine:latest AS installer-stage
-
-RUN apk add sfdisk e2fsprogs dtc
-
 WORKDIR /build
 
 COPY --from=root-stage / root/
@@ -13,6 +9,4 @@ COPY install ./
 COPY install-* ./
 
 ARG LINUX_ARCH
-
-CMD ./install
 
