@@ -19,6 +19,8 @@ addVar() {
     eval "$KEY=\"$VALUE\""
     DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg \"$KEY=$VALUE\""
     echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/build
+    LABEL=$(echo "BUILD_$KEY" | sed "s/.*/\L&/;s/\_/./g")
+    echo "LABEL \"$LABEL\"=\"$VALUE\"" >>$DOCKER_CTX/labels
 }
 
 applyLayer() {
@@ -78,8 +80,6 @@ done
 
 rm -f $DOCKER_CTX/layer-deps
 
-date --iso-8601=seconds >>$DOCKER_CTX/_BUILD_DATE
-
 addVar BOARD_ID $DOCKER_IMAGE
 for FILE in $DOCKER_CTX/_*
 do    
@@ -104,9 +104,11 @@ EOF
     done
 done
 
+cat $DOCKER_CTX/labels >>$DOCKER_CTX/Dockerfile
+rm $DOCKER_CTX/labels
+
 tree $DOCKER_CTX
 
-DOCKER_IMAGE=$BOARD_ID
-sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+sh -c "docker buildx build --progress=plain --push $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
 
