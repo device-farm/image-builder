@@ -4,6 +4,6 @@ ROOT_SIZE_MB=${ROOT_SIZE_MB:-500}
 sfdisk --wipe always $INSTALL_DEVICE <<EOT
 1M,${BOOT_SIZE_MB}M
 ,${ROOT_SIZE_MB}M
-,200M
+,
 EOT
 
