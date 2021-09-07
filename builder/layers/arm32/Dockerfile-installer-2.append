@@ -1,0 +1,2 @@
+COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/zImage root/boot/zImage
+

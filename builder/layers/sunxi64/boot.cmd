@@ -1,0 +1,4 @@
+setenv bootargs console=ttyS0,115200 root=/dev/mmcblk0p2 rw,noatime rootwait panic=10
+load mmc 0:1 ${fdt_addr_r} dtb
+load mmc 0:1 ${kernel_addr_r} Image
+booti ${kernel_addr_r} - ${fdt_addr_r}

@@ -88,7 +88,7 @@ do
     addVar "$KEY" "$VALUE"
 done
 
-for FRAGMENT in top cc boot kernel root installer
+for FRAGMENT in top cc boot # kernel root installer
 do
         cat >>$DOCKER_CTX/Dockerfile <<EOF
 
@@ -109,6 +109,6 @@ rm $DOCKER_CTX/labels
 
 tree $DOCKER_CTX
 
-sh -c "docker buildx build --progress=plain --push $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+sh -c "docker buildx build --progress=plain --load $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
 
