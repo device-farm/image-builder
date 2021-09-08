@@ -18,3 +18,4 @@ RUN cat u-boot.patch | patch -p1
 
 COPY uboot-defconfig .
 RUN cat uboot-defconfig >>configs/${UBOOT_DEFCONFIG}; rm uboot-defconfig
+

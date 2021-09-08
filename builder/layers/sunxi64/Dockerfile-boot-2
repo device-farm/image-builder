@@ -1,0 +1,1 @@
+RUN make BL31=/build/u-boot/arm-trusted-firmware/build/${ARM_TRUSTED_FIRMWARE_PLATFORM}/debug/bl31.bin ${UBOOT_DEFCONFIG}
