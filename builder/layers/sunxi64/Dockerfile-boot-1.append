@@ -1,7 +1,6 @@
 RUN git clone https://github.com/ARM-software/arm-trusted-firmware.git
 WORKDIR /build/u-boot/arm-trusted-firmware
 
-ARG ARM_TRUSTED_FIRMWARE_PLATFORM
 RUN make PLAT=${ARM_TRUSTED_FIRMWARE_PLATFORM} DEBUG=1 bl31
 
 WORKDIR /build/u-boot

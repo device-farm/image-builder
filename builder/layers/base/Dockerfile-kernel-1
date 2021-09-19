@@ -1,8 +1,6 @@
 FROM cc-stage AS kernel-stage
 
-ARG LINUX_DEFCONFIG
-ARG LINUX_REPO
-ARG LINUX_VERSION
+ENV CROSS_COMPILE=${GCC_CROSS_COMPILE}
 
 WORKDIR /build
 RUN git clone -c advice.detachedHead=false --depth 1 -b ${LINUX_VERSION} ${LINUX_REPO}
@@ -14,7 +12,6 @@ WORKDIR /build/linux
 COPY linux.patch .
 RUN cat linux.patch | patch -p1
 
-ARG LINUX_ARCH
 ENV LINUX_ARCH=${LINUX_ARCH}
 ENV ARCH=${LINUX_ARCH}
 

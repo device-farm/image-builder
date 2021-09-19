@@ -8,5 +8,4 @@ RUN mkdir custom-root
 COPY install ./
 COPY install-* ./
 
-ARG LINUX_ARCH
 

@@ -1,4 +1,0 @@
-# these two args need to be on top since they control FROM command
-ARG ROOT_CONTAINER_PLATFORM
-ARG ROOT_CONTAINER_IMAGE
-

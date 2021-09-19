@@ -1,10 +1,7 @@
 FROM ubuntu:21.04 AS cc-stage
 
-ARG GCC_CROSS_COMPILE
-
-ENV CROSS_COMPILE=${GCC_CROSS_COMPILE}
-
 ENV DEBIAN_FRONTEND=noninteractive
+
 RUN apt-get update
 RUN apt-get install -y \
     git \

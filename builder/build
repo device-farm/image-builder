@@ -12,15 +12,21 @@ fi
 
 echo "Building installer image $DOCKER_IMAGE on layers [$LAYERS]"
 
+declare -A LABELS
+declare -A ARGS
+
 addVar() {
     KEY=$1
     VALUE=$2
     echo "$KEY=\"$VALUE\""
     eval "$KEY=\"$VALUE\""
-    DOCKER_BUILD_ARGS="$DOCKER_BUILD_ARGS --build-arg \"$KEY=$VALUE\""
-    echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/build
+
+    ARGS[$KEY]=$VALUE
+
     LABEL=$(echo "BUILD_$KEY" | sed "s/.*/\L&/;s/\_/./g")
-    echo "LABEL \"$LABEL\"=\"$VALUE\"" >>$DOCKER_CTX/labels
+    LABELS[$LABEL]=$VALUE    
+
+    echo "$KEY=\"$VALUE\"" >>$DOCKER_CTX/root/etc/build
 }
 
 applyLayer() {
@@ -86,29 +92,44 @@ do
     KEY=$(echo $(basename $FILE) | sed s/^.//)
     VALUE=$(cat $DOCKER_CTX/_$KEY)
     addVar "$KEY" "$VALUE"
+    rm $FILE
 done
 
-for FRAGMENT in top cc boot kernel root installer
+for FRAGMENT in cc boot kernel root installer
 do
-        cat >>$DOCKER_CTX/Dockerfile <<EOF
+        cat >>$DOCKER_CTX/~Dockerfile <<EOF
 
 ##############################################
 # $FRAGMENT
 ##############################################
 
 EOF
+
     for FRAGMENT_FILE in $(ls $DOCKER_CTX/Dockerfile-$FRAGMENT* | sort)
     do
-        cat $FRAGMENT_FILE >>$DOCKER_CTX/Dockerfile
+        cat $FRAGMENT_FILE >>$DOCKER_CTX/~Dockerfile
         rm $FRAGMENT_FILE
     done
 done
 
-cat $DOCKER_CTX/labels >>$DOCKER_CTX/Dockerfile
-rm $DOCKER_CTX/labels
+for LABEL in ${!LABELS[@]}
+do
+    echo "LABEL $LABEL='${LABELS[$LABEL]}'" >>$DOCKER_CTX/~Dockerfile
+done
+
+for ARG in ${!ARGS[@]}
+do
+    ARG_SED="${ARG_SED}s/\\\${$ARG}/$(echo ${ARGS[$ARG]} | sed 's/\//\\\//g')/g;"
+done
+
+echo $ARG_SED
+
+cat $DOCKER_CTX/~Dockerfile | sed "$ARG_SED" >$DOCKER_CTX/Dockerfile
+rm $DOCKER_CTX/~Dockerfile
 
 tree $DOCKER_CTX
 
-sh -c "docker buildx build --progress=plain --push $DOCKER_BUILD_ARGS $DOCKER_CTX -t $DOCKER_IMAGE"
+sh -c "docker buildx build $DOCKER_BUILD_ARGS --progress=plain --push $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
+
 
