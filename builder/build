@@ -129,7 +129,7 @@ rm $DOCKER_CTX/~Dockerfile
 
 tree $DOCKER_CTX
 
-sh -c "docker buildx build $DOCKER_BUILD_ARGS --progress=plain --push $DOCKER_CTX -t $DOCKER_IMAGE"
+sh -c "docker buildx build --progress=plain --push $DOCKER_CTX -t $DOCKER_IMAGE"
 echo "Published as $DOCKER_IMAGE"
 
 
