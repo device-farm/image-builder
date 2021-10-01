@@ -110,6 +110,11 @@ EOF
         cat $FRAGMENT_FILE >>$DOCKER_CTX/~Dockerfile
         rm $FRAGMENT_FILE
     done
+
+    if [ $FRAGMENT = $STOP_AT ]
+    then
+      break
+    fi
 done
 
 for LABEL in ${!LABELS[@]}
@@ -129,7 +134,21 @@ rm $DOCKER_CTX/~Dockerfile
 
 tree $DOCKER_CTX
 
-sh -c "docker buildx build --progress=plain --push $DOCKER_CTX -t $DOCKER_IMAGE"
-echo "Published as $DOCKER_IMAGE"
+if [ -z $STOP_AT ]
+then
+    BUILD_OUTPUT=--push
+else
+    BUILD_OUTPUT=--load
+fi
+
+sh -c "docker buildx build --progress=plain $BUILD_OUTPUT $DOCKER_CTX -t $DOCKER_IMAGE"
+
+
+if [ -z $STOP_AT ]
+then
+    echo "Published as $DOCKER_IMAGE"
+else
+    echo "Loaded locally as $DOCKER_IMAGE"
+fi
 
 

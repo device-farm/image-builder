@@ -1,1 +1,5 @@
 RUN make ${LINUX_DEFCONFIG}
+RUN cat .config | sed "s/=m/=y/" >.config-y
+RUN mv .config-y .config
+
+
