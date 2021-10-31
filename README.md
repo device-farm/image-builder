@@ -2,7 +2,7 @@
 
 ## docker buildx setup
 ```sh
-sudo apt install binfmt-support
+docker run --rm --privileged linuxkit/binfmt:v0.8
 docker buildx create --name cross --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6
 docker buildx use cross
 ```
