@@ -5,9 +5,9 @@ function build() {
     $(dirname $0)/build $@
 }
 
-#build defa/rpi-2-b rpi-2-b dropbear avahi ./device-farm
-#build defa/orangepi-zero orangepi-zero dropbear avahi ./device-farm
-#build defa/nanopi-duo nanopi-duo dropbear avahi ./device-farm
+build defa/rpi-2-b rpi-2-b dropbear avahi ./device-farm
+build defa/orangepi-zero orangepi-zero dropbear avahi ./device-farm
+build defa/nanopi-duo nanopi-duo dropbear avahi ./device-farm
 build defa/orangepi-one-plus orangepi-one-plus dropbear avahi ./device-farm
 
 #build defa/qemu_x86_64 qemu_x86_64 wired dropbear avahi ./device-farm
