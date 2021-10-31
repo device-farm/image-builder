@@ -15,10 +15,5 @@ RUN cat linux.patch | patch -p1
 ENV LINUX_ARCH=${LINUX_ARCH}
 ENV ARCH=${LINUX_ARCH}
 
-COPY linux-defconfig .
-RUN cat linux-defconfig >>arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG}; rm linux-defconfig
-
-COPY firmware /build/firmware
-RUN rm /build/firmware/.keepme
-RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f -printf '%P ')\"" >>arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG}
+RUN cp arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG} arch/${LINUX_ARCH}/configs/my_defconfig
 

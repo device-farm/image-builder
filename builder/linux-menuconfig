@@ -15,10 +15,15 @@ DEFCONFIG_PATH=$(readlink --canonicalize $DEFCONFIG_PATH)
 echo "DEFCONFIG_PATH=$DEFCONFIG_PATH"
 echo "LINUX_DIR=$LINUX_DIR"
 
-export ARCH=arm
-export LINUX_ARCH=arm
+#export ARCH=arm
+#export LINUX_ARCH=arm
+#export CROSS_COMPILE=arm-none-eabi-
+#export DEFCONFIG=multi_v7_defconfig
+
+export ARCH=arm64
+export LINUX_ARCH=arm64
 export CROSS_COMPILE=arm-none-eabi-
-export DEFCONFIG=multi_v7_defconfig
+export DEFCONFIG=allnoconfig
 
 #export LINUX_ARCH=x86
 #export DEFCONFIG=x86_64_defconfig
