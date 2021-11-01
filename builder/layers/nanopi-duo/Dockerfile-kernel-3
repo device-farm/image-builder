@@ -1,0 +1,3 @@
+# there is no mod2yesconfig target in Linux 4.x
+RUN make my_defconfig
+
