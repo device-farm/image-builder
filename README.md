@@ -31,3 +31,5 @@ sudo kvm -m 1024 -kernel ~/tmp/bzImage -append "root=/dev/sda2 console=ttyS0" -s
 
 ### device.farm
 
+### PODman changes
+CONFIG_NETFILTER_XT_MATCH_COMMENT=y
