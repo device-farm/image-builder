@@ -1,5 +1,9 @@
+######## xradio layer ########
+
 # XRADIO needs Linux <=5.12, because of removal single param version of_get_mac_address 
 # https://elixir.bootlin.com/linux/v5.12/source/drivers/of/of_net.c#L103
+
+# Enable XRADIO, which is patched to kernel by this layer
 CONFIG_WLAN_VENDOR_XRADIO=y
 CONFIG_XRADIO_NON_POWER_OF_TWO_BLOCKSIZES=y
 CONFIG_XRADIO_USE_EXTENSIONS=y

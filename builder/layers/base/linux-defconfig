@@ -1,10 +1,19 @@
+######## base layer ########
 
+# We compile monolithic kernel 
 CONFIG_MODULES=n
 CONFIG_MODULE_UNLOAD=n
 
+# Enable SMP by default
+CONFIG_SMP=y
+
+# Enable firmware support
 CONFIG_FW_LOADER=y
 CONFIG_EXTRA_FIRMWARE_DIR="/build/firmware"
+
+# No IPv6 yet
 CONFIG_IPV6=n
 
+# This causes compilation problems in 5.x on some platforms
 CONFIG_NET_VENDOR_MELLANOX=n
 

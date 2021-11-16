@@ -1,2 +1,5 @@
+######## qemu_x86_64 layer ########
+
+# Enable debugging
 CONFIG_DEBUG_INFO=y
 CONFIG_GDB_SCRIPTS=y

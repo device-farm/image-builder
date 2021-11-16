@@ -1,3 +1,9 @@
+echo "> Configuring SSH host keys"
+mkdir -p $MOUNT/etc/dropbear
+dropbearkey -t dss -f $MOUNT/etc/dropbear/dropbear_dss_host_key
+dropbearkey -t rsa -f $MOUNT/etc/dropbear/dropbear_rsa_host_key
+dropbearkey -t ecdsa -f $MOUNT/etc/dropbear/dropbear_ecdsa_host_key
+
 if [ ! -z "$CONFIG_SSH_AUTHORIZED_KEYS" ]
 then
     echo "> Configuring SSH authorized keys"    
