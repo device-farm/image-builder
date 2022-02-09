@@ -8,6 +8,7 @@ git -C linux/drivers/net/wireless clone --depth 1 https://github.com/karabek/xra
 
 rm -rf linux/drivers/net/wireless/xradio/dts
 rm -rf linux/drivers/net/wireless/xradio/.gitignore
+rm -rf linux/drivers/net/wireless/xradio/.git
 
 rm -rf firmware
 mkdir firmware
