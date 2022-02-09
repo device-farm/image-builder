@@ -1,0 +1,11 @@
+{
+    "exec": {
+        "module": "./exec.js"
+    },
+    "commands": [
+        {
+            "module": "./build.js",
+            "exec": "-> exec"
+        }
+    ]
+}

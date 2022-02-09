@@ -1,3 +1,0 @@
-i2c0 = "/soc/i2c@1c2ac00";
-i2c1 = "/soc/i2c@1c2b000";
-i2c2 = "/soc/i2c@1c2b400";
