@@ -10,7 +10,17 @@ module.exports = async () => {
             });
 
             proc.on("exit", (code, signal) => {
-                resolve({ code, signal });
+                if (signal) {
+                    let error = new Error(`Process received ${signal}`);
+                    error.signal = signal;
+                    reject(error);
+                } else if (code) {
+                    let error = new Error(`Process exited with code ${code}`);
+                    error.code = code;
+                    reject(error);
+                } else {                    
+                    resolve();
+                }
             });
 
             proc.on("error", error => {
