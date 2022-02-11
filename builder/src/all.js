@@ -2,7 +2,7 @@ const fs = require("fs").promises;
 
 module.exports = async ({ builder, exec }) => {
 
-    const profiles = [        
+    const profiles = [
         {
             tag: "base",
             prefix: "ghcr.io/device-farm/",
@@ -20,11 +20,11 @@ module.exports = async ({ builder, exec }) => {
         description: "builds all installers of MIC Linux",
         define(program) {
             program
-                // .option("-B, --build-dir <dir>", `directory for docker build context; defaults to ${builder.DEFAULT_BUILD_DIR}`)
-                // .option("-S, --stop-at <place>", `where to stop: ${[...builder.FRAGMENTS, "build"].join(", ")}`)
+                .option("-D, --dry", `dry run`)
+            // .option("-S, --stop-at <place>", `where to stop: ${[...builder.FRAGMENTS, "build"].join(", ")}`)
         },
 
-        async run({}) {
+        async run({ dry }) {
 
             let boards = [];
 
@@ -43,20 +43,26 @@ module.exports = async ({ builder, exec }) => {
                             throw e;
                         }
                     }
-                
+
                 }
             }
 
             await findBoards(__dirname + "/../../layers");
 
             for (let board of boards) {
-                for (let profile of profiles) {                    
+                for (let profile of profiles) {
                     let installerImage = profile.prefix + board + ":" + profile.tag;
-                    await builder.run({
-                        installerImage,
-                        layers: [board, ...profile.layers]
-                    });
-                    await exec("docker", ["push", installerImage]);
+
+                    if (dry) {
+                        console.info(`mic local ${installerImage} ${board} ${profile.layers.join(" ")} && docker push ${installerImage}`);
+                    } else {
+                        await builder.run({
+                            installerImage,
+                            layers: [board, ...profile.layers]
+                        });
+                        await exec("docker", ["push", installerImage]);
+                        }
+    
                 }
             }
 

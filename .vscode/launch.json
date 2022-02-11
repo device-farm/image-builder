@@ -30,7 +30,8 @@
             ],
             "program": "${workspaceFolder}/builder/src/start.js",
             "args": [
-                "all"
+                "all",
+                "--dry"
             ],
             "outputCapture": "std"
         }
