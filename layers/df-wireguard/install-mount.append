@@ -1,5 +1,4 @@
-echo "> Configuring DEVICE.FARM..."
-mkdir $MOUNT/data/docker
+echo "> Configuring DEVICE.FARM Wireguard..."
 
 DEVICE_WG_PRIVATE_KEY=$(wg genkey)
 DEVICE_WG_PRESHARED_KEY=$(wg genpsk)

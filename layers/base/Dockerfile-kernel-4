@@ -1,1 +1,2 @@
-RUN make
+RUN make -j$(( $(nproc) * 2 ))
+

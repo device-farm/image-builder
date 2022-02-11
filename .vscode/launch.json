@@ -7,7 +7,7 @@
         {
             "type": "pwa-node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "mic build",
             "skipFiles": [
                 "<node_internals>/**"
             ],
@@ -18,6 +18,19 @@
                 "orangepi-zero",
                 "dropbear",
                 "avahi"
+            ],
+            "outputCapture": "std"
+        },
+        {
+            "type": "pwa-node",
+            "request": "launch",
+            "name": "mic all",
+            "skipFiles": [
+                "<node_internals>/**"
+            ],
+            "program": "${workspaceFolder}/builder/src/start.js",
+            "args": [
+                "all"
             ],
             "outputCapture": "std"
         }

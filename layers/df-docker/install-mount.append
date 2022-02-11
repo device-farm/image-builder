@@ -1,0 +1,4 @@
+echo "> Configuring DEVICE.FARM Docker..."
+mkdir $MOUNT/data/docker
+
+

@@ -1,7 +1,5 @@
-######## device-farm layer ########
+# Enable Docker
 
-
-# Enable all what is needed for Docker
 CONFIG_BLK_CGROUP=y
 CONFIG_BLK_DEV_THROTTLING=y
 CONFIG_BRIDGE_NETFILTER=y
@@ -49,7 +47,4 @@ CONFIG_USER_NS=y
 CONFIG_VETH=y
 CONFIG_VXLAN=y
 CONFIG_XFRM_USER=y
-
-#Enable wireguard
-CONFIG_WIREGUARD=y
 

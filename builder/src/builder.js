@@ -3,22 +3,17 @@ const fs = require("fs").promises;
 module.exports = async ({ exec }) => {
 
     const DEFAULT_BUILD_DIR = "/tmp/mic-build";
-    const DEFAULT_ACTION = "push";
     const FRAGMENTS = ["cc", "boot", "kernel", "root", "installer"];
 
     return {
-        name: "build <installer-image> <layers...>",
-        description: "builds MIC Linux",
-        define(program) {
-            program
-                .option("-B, --build-dir <dir>", `directory for docker build context; defaults to ${DEFAULT_BUILD_DIR}`)
-                .option("-D, --do-action <action>", `what to do with the image: push or load; defaults to ${DEFAULT_ACTION}`)
-                .option("-S, --stop-at <place>", `where to stop: ${[...FRAGMENTS, "build"].join(", ")}`)
-        },
 
-        async run(installerImage, layers, {
+        DEFAULT_BUILD_DIR,
+        FRAGMENTS,
+
+        async run({
+            installerImage,
+            layers,
             buildDir = DEFAULT_BUILD_DIR,
-            doAction = DEFAULT_ACTION,
             stopAt
         }) {
 
@@ -58,18 +53,24 @@ module.exports = async ({ exec }) => {
                 async function scanAppends(dir) {
                     for (let file of await fs.readdir(dir)) {
                         let path = dir + "/" + file;
-                        let stat = await fs.stat(path);
-                        if (stat.isDirectory()) {
-                            await scanAppends(path);
-                        } else if (stat.isFile() && path.endsWith(".append")) {
-                            let data = await fs.readFile(path);
-                            let handle = await fs.open(path.replace(/\.append$/, ""), "a");
-                            try {
-                                await handle.write(data);
-                            } finally {
-                                await handle.close();
+                        try {
+                            let stat = await fs.stat(path);
+                            if (stat.isDirectory()) {
+                                await scanAppends(path);
+                            } else if (stat.isFile() && path.endsWith(".append")) {
+                                let data = await fs.readFile(path);
+                                let handle = await fs.open(path.replace(/\.append$/, ""), "a");
+                                try {
+                                    await handle.write(data);
+                                } finally {
+                                    await handle.close();
+                                }
+                                await fs.unlink(path);
                             }
-                            await fs.unlink(path);
+                        } catch (e) {
+                            if (e.code !== "ENOENT") {
+                                throw e;
+                            }
                         }
                     }
                 }
@@ -147,7 +148,7 @@ module.exports = async ({ exec }) => {
                     "buildx",
                     "build",
                     "--progress=plain",
-                    "--" + doAction,
+                    "--load",
                     buildDir,
                     "-t",
                     installerImage
@@ -155,5 +156,6 @@ module.exports = async ({ exec }) => {
 
             }
         }
+
     }
 }

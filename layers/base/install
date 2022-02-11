@@ -7,7 +7,7 @@ then
     exit 1
 fi
 
-INSTALL_DEVICE=/build/host/$INSTALL_DEVICE
+INSTALL_DEVICE=/build/host$INSTALL_DEVICE
 
 echo "> Creating partition table..."
 . ./install-device

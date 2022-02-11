@@ -1,0 +1,3 @@
+RUN apk add docker
+RUN rc-update add docker default
+

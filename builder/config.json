@@ -2,10 +2,20 @@
     "exec": {
         "module": "./exec.js"
     },
+    "builder": {
+        "module": "./builder.js",
+            "exec": "-> exec"
+    },
     "commands": [
         {
-            "module": "./build.js",
+            "module": "./local.js",
+            "builder": "-> builder"
+        },
+        {
+            "module": "./all.js",
+            "builder": "-> builder",
             "exec": "-> exec"
         }
+
     ]
 }
