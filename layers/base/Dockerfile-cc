@@ -1,4 +1,4 @@
-FROM ubuntu:21.04 AS cc-stage
+FROM ubuntu:23.10 AS cc-stage
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -18,4 +18,3 @@ RUN apt-get install -y \
     libssl-dev \
     libelf-dev \
     curl
-    
