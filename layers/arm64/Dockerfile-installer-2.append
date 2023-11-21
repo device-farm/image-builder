@@ -1,2 +1,0 @@
-COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/Image root/boot/Image
-
