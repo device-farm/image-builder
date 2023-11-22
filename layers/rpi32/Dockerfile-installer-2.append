@@ -1,0 +1,2 @@
+COPY --from=kernel-stage /build/linux/arch/${LINUX_ARCH}/boot/Image root/boot/${KERNEL}.img
+COPY --from=kernel-stage /build/rpi-firmware/ root/boot/

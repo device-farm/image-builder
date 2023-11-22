@@ -1,0 +1,7 @@
+WORKDIR ..
+RUN git clone -c advice.detachedHead=false --depth 1 -b stable https://github.com/raspberrypi/firmware
+RUN mkdir rpi-firmware
+RUN cp -r firmware/boot/* rpi-firmware
+RUN rm -rf firmware
+RUN rm -rf rpi-firmware/kernel*
+WORKDIR linux
