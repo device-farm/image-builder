@@ -1,2 +1,2 @@
-RUN apk add wpa_supplicant
+RUN apk add wpa_supplicant wireless-regdb
 
