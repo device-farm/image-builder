@@ -17,3 +17,4 @@ ENV ARCH=${LINUX_ARCH}
 
 RUN cp arch/${LINUX_ARCH}/configs/${LINUX_DEFCONFIG} arch/${LINUX_ARCH}/configs/my_defconfig
 
+RUN mkdir /build/firmware

@@ -1,2 +1,2 @@
-device_tree=bcm2710-rpi-zero-2-w.dtb
 enable_uart=1
+device_tree=bcm2710-rpi-zero-2-w.dtb

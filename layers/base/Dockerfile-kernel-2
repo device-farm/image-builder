@@ -2,7 +2,7 @@ COPY linux-defconfig .
 RUN cat linux-defconfig >>arch/${LINUX_ARCH}/configs/my_defconfig
 RUN rm linux-defconfig
 
-COPY firmware /build/firmware
+COPY firmware/* /build/firmware/
 RUN rm /build/firmware/.keepme
-RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f -printf '%P ')\"" >>arch/${LINUX_ARCH}/configs/my_defconfig
+RUN echo "CONFIG_EXTRA_FIRMWARE=\"$(find /build/firmware -type f,l -printf '%P ')\"" >>arch/${LINUX_ARCH}/configs/my_defconfig
 
