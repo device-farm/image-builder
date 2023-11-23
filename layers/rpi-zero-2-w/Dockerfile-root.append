@@ -1,0 +1,19 @@
+COPY <<EOF /etc/init.d/fix-wlan-names
+#!/sbin/openrc-run
+
+# On Raspberry Pi Zero 2 W, the 2.4GHz WiFi is named wlan2 by default.
+# This script swaps wlan0 and wlan2, as we are expecting wlan0 to be the default WiFi interface.
+
+set -e
+
+function start()
+{
+    ip link set wlan0 name wlan3
+    ip link set wlan2 name wlan0
+}
+EOF
+
+RUN chmod 777 /etc/init.d/fix-wlan-names
+
+RUN rc-update add fix-wlan-names sysinit
+
