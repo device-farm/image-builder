@@ -28,7 +28,7 @@ module.exports = async ({ exec }) => {
                     layerDir = `${__dirname}/../../layers/${layerName}`;
                 } else {
                     layerDir = layerName;
-                    layerName = layerName.replace(/.*\//);
+                    layerName = layerName.replace(/.*\//, "");
                 }
 
                 let layers = [];
