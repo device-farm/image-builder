@@ -7,3 +7,4 @@ sfdisk --wipe always $INSTALL_DEVICE <<EOT
 ,
 EOT
 
+sync
