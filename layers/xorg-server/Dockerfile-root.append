@@ -1,0 +1,24 @@
+RUN apk add xorg-server
+
+COPY <<EOF /etc/init.d/xorg-server
+#!/sbin/openrc-run
+
+function depend()
+{
+    need net
+}
+
+function start()
+{
+    X &
+}
+
+function stop()
+{
+    pkill X || true
+}
+EOF
+
+RUN chmod 777 /etc/init.d/xorg-server
+
+RUN rc-update add xorg-server
