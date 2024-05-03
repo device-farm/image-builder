@@ -10,7 +10,7 @@ function depend()
 
 function start()
 {
-    X &
+    X -dpms &
 }
 
 function stop()
