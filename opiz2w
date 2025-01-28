@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+./mic local opiz2w orangepi-zero-2w
+docker save opiz2w | sudo docker load
+sudo docker run --rm --privileged --volume=/dev:/build/host/dev -e INSTALL_DEVICE=/dev/mmcblk0 opiz2w

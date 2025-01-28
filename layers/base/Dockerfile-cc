@@ -17,4 +17,5 @@ RUN apt-get install -y \
     dosfstools \
     libssl-dev \
     libelf-dev \
+    libgnutls28-dev \
     curl

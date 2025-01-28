@@ -1,2 +1,2 @@
-RUN make -j$(( $(nproc) * 2 ))
+RUN make DTC_FLAGS="-@" -j$(( $(nproc) * 2 ))
 
