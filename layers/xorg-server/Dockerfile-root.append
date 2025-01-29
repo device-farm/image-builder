@@ -1,4 +1,4 @@
-RUN apk add xorg-server
+RUN apk add xorg-server xinit
 
 COPY <<EOF /etc/init.d/xorg-server
 #!/sbin/openrc-run
@@ -10,12 +10,12 @@ function depend()
 
 function start()
 {
-    X -s 0 &
+    xinit /etc/xinitrc &
 }
 
 function stop()
 {
-    pkill X || true
+    pkill xinit || true
 }
 EOF
 
