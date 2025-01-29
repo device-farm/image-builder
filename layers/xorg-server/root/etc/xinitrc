@@ -1,6 +1,2 @@
 #!/bin/sh
 
-xset s off              # Disable screen saver
-xset -dpms              # Disable DPMS (Energy Star) features
-xset s noblank          # Prevent blanking the screen
-
